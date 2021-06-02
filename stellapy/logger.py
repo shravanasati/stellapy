@@ -1,6 +1,9 @@
 from datetime import datetime
 
 def log(severity:str, message:str) -> None:
+    """
+    The `log` function logs the messages according to their severity.
+    """
     time = datetime.now().strftime("%d-%m-%y %H:%M:%S")
     color_red = "\033[31m"
     color_green = "\033[32m"
