@@ -1,4 +1,4 @@
-from walker import Walker
+from walker import walk, get_file_content
 from time import sleep
 import subprocess
 
@@ -9,7 +9,6 @@ class Reloader():
     The `Reloader` class.
     """
     def __init__(self) -> None:
-        self.w = Walker()
         self.project_data = self.get_project_data()
 
     def get_project_data(self) -> dict:
@@ -17,8 +16,8 @@ class Reloader():
         Returns a dict with filenames mapped to their contents.
         """
         project_data = {}
-        for f in self.w.walk():
-            project_data.update({f: self.w.get_file_content(f)})
+        for f in walk():
+            project_data.update({f: get_file_content(f)})
         
         return project_data
 
@@ -33,7 +32,7 @@ class Reloader():
             return True
 
         try:
-            for k, v in self.project_data:
+            for k, v in self.project_data.items():
                 if new_content[k] != v:
                     self.project_data = new_content
                     return True
@@ -51,8 +50,20 @@ class Reloader():
 
     def reload(self, command:str) -> None:
         while True:
+            print(self.detect_change())
             if self.detect_change():
                 subprocess.run(command)
 
             else:
                 sleep(1)
+
+    def start_server(command:str) -> None:
+        """
+        Starts the server. All reloading and stuff is done here.
+        """
+        pass
+
+
+if __name__ == "__main__":
+    r = Reloader()
+    r.reload("echo 'running'")
