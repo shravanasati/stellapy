@@ -1,6 +1,6 @@
 from walker import walk, get_file_content
 from time import sleep
-import subprocess
+from executor import Executor
 
 # TODO manual restart and exit of server
 
@@ -8,8 +8,10 @@ class Reloader():
     """
     The `Reloader` class.
     """
-    def __init__(self) -> None:
+    def __init__(self, command:str) -> None:
         self.project_data = self.get_project_data()
+        self.ex = Executor(command)
+
 
     def get_project_data(self) -> dict:
         """
@@ -49,20 +51,18 @@ class Reloader():
         return False
 
     def reload(self, command:str) -> None:
-        while True:
-            print(self.detect_change())
-            if self.detect_change():
-                subprocess.run(command)
+        print(self.detect_change())
+        if self.detect_change():
+            self.ex.re_execute()
 
-            else:
-                sleep(1)
+        else:
+            sleep(1)
 
-    def start_server(command:str) -> None:
+    def start_server(self, command:str) -> None:
         """
         Starts the server. All reloading and stuff is done here.
         """
-        pass
-
+        self.ex.start()
 
 if __name__ == "__main__":
     r = Reloader()
