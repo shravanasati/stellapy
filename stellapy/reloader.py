@@ -1,6 +1,8 @@
+from logger import log
 from walker import walk, get_file_content
 from time import sleep
 from executor import Executor
+import helium
 
 # TODO manual restart and exit of server
 
@@ -50,20 +52,28 @@ class Reloader():
 
         return False
 
-    def reload(self, command:str) -> None:
-        print(self.detect_change())
-        if self.detect_change():
-            self.ex.re_execute()
 
-        else:
-            sleep(1)
+    def reload(self) -> None:
+        helium.start_firefox("localhost:5000")
+        while True:
+            # print(self.detect_change())
+            if self.detect_change():
+                log("info", "detected changes in the project, reloading server and browser")
+                self.ex.re_execute()
+                sleep(1)
+                helium.refresh()
 
-    def start_server(self, command:str) -> None:
+            else:
+                sleep(1)
+
+    def start_server(self) -> None:
         """
         Starts the server. All reloading and stuff is done here.
         """
+        log("stella", "starting stella")
         self.ex.start()
+        self.reload()
 
 if __name__ == "__main__":
-    r = Reloader()
-    r.reload("echo 'running'")
+    r = Reloader("python3 ./test.py")
+    r.start_server()

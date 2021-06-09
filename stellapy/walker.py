@@ -1,20 +1,11 @@
 import os
-import igittigitt
-
-def _is_ignored(file:str) -> bool:
-    try:
-        parser = igittigitt.IgnoreParser()
-        parser._parse_rule_file("./.gitignore")
-        return parser.match(file)
-
-    except Exception as e:
-        print(e)
 
 def walk() -> list:
     """
     The `walk` function recursively searches for all files in the project returns a list of
     valid files.
     """
+    supported_ext = {"html", "css", "js", "py", "rb", "go", "rs", "php"}
     try:
         project_files = []
         for (root,_,files) in os.walk('.', topdown=True):
@@ -22,9 +13,9 @@ def walk() -> list:
                 continue
 
             for file in files:
-                if not _is_ignored(file): 
+                ext = file.split('.')[-1]
+                if ext in supported_ext:
                     project_files.append(os.path.join(root, file))
-                # print(os.path.exists(os.path.join(root, file)))
 
         return project_files
 
