@@ -1,6 +1,6 @@
 import sys
 import subprocess
-from logger import log
+from stellapy.logger import log
 
 class Executor():
     """

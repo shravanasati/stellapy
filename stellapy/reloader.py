@@ -1,23 +1,24 @@
 import os
-from logger import log
-from walker import walk, get_file_content
+from stellapy.logger import log
+from stellapy.walker import walk, get_file_content
 from time import sleep
-from executor import Executor
+from stellapy.executor import Executor
 import helium
 from threading import Thread
 
-# TODO manual restart and exit of server
 
 class Reloader():
     """
     The `Reloader` class.
     """
-    def __init__(self, command:str) -> None:
+    def __init__(self, command:str, url:str) -> None:
         self.project_data = self.get_project_data()
-        self.ex = Executor(command)
+        self.command = command
+        self.ex = Executor(self.command)
+        self.url = url
 
-
-    def get_project_data(self) -> dict:
+    @staticmethod
+    def get_project_data() -> dict:
         """
         Returns a dict with filenames mapped to their contents.
         """
@@ -58,11 +59,11 @@ class Reloader():
     def restart(self) -> None:
         # * checking for browser
         try:
-            helium.start_chrome("localhost:5000")
+            helium.start_chrome(self.url)
         except Exception: 
             log("error", "Chrome binary not found, trying with firefox...")
             try:
-                helium.start_firefox("localhost:5000")
+                helium.start_firefox(self.url)
             except Exception:
                 log("error", "Firefox binary also not found, install either chrome or firefox on your system.")
                 self.ex.close()
@@ -120,12 +121,9 @@ class Reloader():
         Starts the server. All reloading and stuff is done here.
         """
         log("stella", "starting stella")
+        log("stella", f"executing `{self.command}` and listening at {self.url} on the browser")
         log("stella", "input `rs` manually to restart the server and `ex` to stop the server")
         input_thread = Thread(target=self.manual_input)
         input_thread.start()
         self.ex.start()
         self.restart()
-
-if __name__ == "__main__":
-    r = Reloader("python3 ./test.py")
-    r.start_server()

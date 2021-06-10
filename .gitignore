@@ -143,3 +143,4 @@ cython_debug/
 # For testing purposes
 test.py
 test.js
+test.html
