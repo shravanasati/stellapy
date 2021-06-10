@@ -139,3 +139,7 @@ cython_debug/
 
 # Visual Studio Code
 .vscode/
+
+# For testing purposes
+test.py
+test.js
