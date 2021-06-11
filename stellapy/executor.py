@@ -9,11 +9,9 @@ class Executor():
     base class for executing sys calls.
     """
     def __init__(self, command:str) -> None:
-        print("new termination")
         self.__command = shlex.split(command)
-        
+
     def start(self):
-        print("even new termination")
         self.__process = subprocess.Popen(self.__command, stdout=sys.stdout, stderr=sys.stderr, preexec_fn=os.setsid)
 
     def re_execute(self):

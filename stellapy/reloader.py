@@ -1,22 +1,26 @@
 import os
-from stellapy.logger import log
-from stellapy.walker import walk, get_file_content
 from time import sleep
-from stellapy.executor import Executor
-# type: ignore
 import helium
 from threading import Thread
+
+from stellapy.logger import log
+from stellapy.walker import walk, get_file_content
+from stellapy.executor import Executor
+from stellapy.configuration import Configuration
 
 
 class Reloader():
     """
     The `Reloader` class.
     """
-    def __init__(self, command:str, url:str) -> None:
+
+    def __init__(self, command: str, url: str) -> None:
         self.project_data = self.get_project_data()
         self.command = command
         self.ex = Executor(self.command)
         self.url = url
+        c = Configuration()
+        self.config = c.load_configuration()
 
     @staticmethod
     def get_project_data() -> dict:
@@ -26,7 +30,7 @@ class Reloader():
         project_data = {}
         for f in walk():
             project_data.update({f: get_file_content(f)})
-        
+
         return project_data
 
     def detect_change(self) -> bool:
@@ -56,40 +60,76 @@ class Reloader():
 
         return False
 
+    def start_browser(self):
+        browser = self.config["browser"]
+        if browser == "chrome":
+            try:
+                helium.start_chrome(self.url)
+                return True
+            except Exception as e:
+                if e == "Message: unknown error: cannot find Chrome binary":
+                    log("error", "Chrome binary not found. Either install chrome browser or configure stella browser to firefox.")
+                    self.stop_server()
+                
+                elif "Reached error page" in e:
+                    log("error", "app crashed, waiting for file changes to restart...")
+                    return False
+                
+                else:
+                    log("error", f"An unknown error occured: \n{e}")
+                    self.stop_server()
 
-    def restart(self) -> None:
-        # * checking for browser
-        try:
-            helium.start_chrome(self.url)
-        except Exception: 
-            log("error", "Chrome binary not found, trying with firefox...")
+        elif browser == "firefox":
             try:
                 helium.start_firefox(self.url)
-            except Exception:
-                log("error", "Firefox binary also not found, install either chrome or firefox on your system.")
-                self.ex.close()
-                quit(-1)
-
-
-        while True:
-            try:
-                if self.detect_change():
-                    log("info", "detected changes in the project, reloading server and browser")
-                    self.ex.re_execute()
-                    sleep(1)
-                    helium.refresh()
-
-                else:
-                    sleep(1)
-
-            except Exception:
-                try:
-                    log("error", "Browser reload didnt work, retrying in 5 seconds...")
-                    sleep(5)
-                    helium.refresh()
-                except Exception:
-                    log("error", "Browser reload retry failed!")
+                return True
+            except Exception as e:
+                if e == "Message: unknown error: cannot find Firefox binary":
+                    log("error", "Firefox binary not found. Either install chrome browser or configure stella browser to firefox.")
                     self.stop_server()
+
+                elif "Reached error page" in e:
+                    log("error", "app crashed, waiting for file changes to restart...")
+                    return False
+                
+                else:
+                    log("error", f"An unknown error occured: \n{e}")
+                    self.stop_server()
+
+        else:
+            log("error", f"Invalid browser specified: {browser}. stella supports only chrome and firefox. Execute `stella config --browser chrome|firefox` for configuring the browser.")
+            self.stop_server()
+
+    def _restart(self):
+        try:
+            if self.detect_change():
+                log("info", "detected changes in the project, reloading server and browser")
+                self.ex.re_execute()
+                sleep(1)
+                helium.refresh()
+
+            else:
+                sleep(1)
+
+        except Exception:
+            try:
+                log("error", "Browser reload didnt work, retrying in 5 seconds...")
+                sleep(5)
+                helium.refresh()
+            except Exception:
+                log("error", "Browser reload retry failed!")
+                self.stop_server()
+
+    def restart(self) -> None:
+        while True:
+            success = self.start_browser()
+            if success:
+                break
+
+            else:
+                while True:
+                    pass
+
 
     def manual_input(self) -> None:
         """
