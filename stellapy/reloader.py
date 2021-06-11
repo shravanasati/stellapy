@@ -3,6 +3,7 @@ from stellapy.logger import log
 from stellapy.walker import walk, get_file_content
 from time import sleep
 from stellapy.executor import Executor
+# type: ignore
 import helium
 from threading import Thread
 

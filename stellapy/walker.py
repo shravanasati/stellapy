@@ -21,6 +21,7 @@ def walk() -> list:
 
     except Exception as e:
         print(e)
+        return []
 
 def get_file_content(filepath:str) -> str:
     """
@@ -34,6 +35,7 @@ def get_file_content(filepath:str) -> str:
 
     except Exception as e:
         print(e)
+        return ""
 
 if __name__ == "__main__":
     for i in walk():
