@@ -1,23 +1,27 @@
 import sys
 import subprocess
-from stellapy.logger import log
+import os
+import signal
+import shlex
 
 class Executor():
     """
     base class for executing sys calls.
     """
     def __init__(self, command:str) -> None:
-        self.__command = command.split(' ')
+        print("new termination")
+        self.__command = shlex.split(command)
         
     def start(self):
-        self.__process = subprocess.Popen(self.__command, stdout=sys.stdout, stderr=sys.stderr)
+        print("even new termination")
+        self.__process = subprocess.Popen(self.__command, stdout=sys.stdout, stderr=sys.stderr, preexec_fn=os.setsid)
 
     def re_execute(self):
-        self.__process.terminate()
-        self.__process = subprocess.Popen(self.__command, stdout=sys.stdout, stderr=sys.stderr)
+        self.close()
+        self.__process = subprocess.Popen(self.__command, stdout=sys.stdout, stderr=sys.stderr, preexec_fn=os.setsid)
 
     def close(self):
-        self.__process.terminate()
+        os.killpg(os.getpgid(self.__process.pid), signal.SIGTERM)
 
 # if __name__ == "__main__":
 #     import time

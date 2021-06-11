@@ -37,9 +37,9 @@ def get_file_content(filepath:str) -> str:
         print(e)
         return ""
 
-if __name__ == "__main__":
-    for i in walk():
-        print(i)
-        input()
-        print(get_file_content(i))
-        input()
+# if __name__ == "__main__":
+#     for i in walk():
+#         print(i)
+#         input()
+#         print(get_file_content(i))
+#         input()
