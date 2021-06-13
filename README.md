@@ -95,6 +95,12 @@ Example:
 stella run "python3 app.py" localhost:5000
 ```
 
+While stella is running, you can input `rs` to restart the server and reload the browser again. 
+
+To stop stella, input `ex`. It will close the browser as well as kill the running process gracefully.
+
+**It is strongly recommended to not to stop stella abruptly by pressing Ctrl+C. This will keep the process running in the background, which might create problems for you.**
+
 <br>
 
 
