@@ -5,7 +5,7 @@ def walk() -> list:
     The `walk` function recursively searches for all files in the project returns a list of
     valid files.
     """
-    supported_ext = {"html", "css", "js", "py", "rb", "go", "rs", "php"}
+    supported_ext = {"html", "css", "js", "py", "rb", "go", "rs", "php", "java"}
     try:
         project_files = []
         for (root,_,files) in os.walk('.', topdown=True):

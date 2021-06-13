@@ -22,7 +22,7 @@ setup(
 	''',
     keywords = ["web dev", "development", "website", "python", "cli", "stella", "reloader", "walker", "executor", "helium", "selenium", "automation"],
     classifiers = [
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3.6",
@@ -32,6 +32,6 @@ setup(
         "Operating System :: Unix",
         "Operating System :: MacOS :: MacOS X",
         "Operating System :: Microsoft :: Windows",
-        "Topic :: Software Development :: Libraries"
+        "Topic :: Software Development :: Applications"
     ]
 )

@@ -114,7 +114,7 @@ class Reloader():
                 sleep(5)
                 helium.refresh()
             except Exception:
-                log("error", "Browser reload retry failed! Make sure you've provided stella the correct url to listen at.")
+                log("error", "Browser reload retry failed! Make sure you've provided stella the correct url to listen at. Waiting for file changes to restart...")
 
     def restart(self) -> None:
         self.start_browser()
