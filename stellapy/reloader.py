@@ -68,14 +68,14 @@ class Reloader():
                 helium.start_chrome(self.url)
             except Exception as e:
                 if re.match("Message: unknown error: cannot find Chrome binary", str(e)):
-                    log("error", "Chrome binary not found. Either install chrome browser or configure stella browser to firefox.")
+                    log("error", "chrome binary not found. either install chrome browser or configure stella browser to firefox.")
                     self.stop_server()
                 
                 elif re.match("Reached error page" in str(e)):
                     log("error", "app crashed, waiting for file changes to restart...")
                 
                 else:
-                    log("error", f"An unknown error occured: \n{e}")
+                    log("error", f"an unknown error occured: \n{e}")
                     self.stop_server()
 
         elif browser == "firefox":
@@ -83,18 +83,18 @@ class Reloader():
                 helium.start_firefox(self.url)
             except Exception as e:
                 if re.match("Message: unknown error: cannot find Firefox binary", str(e)):
-                    log("error", "Firefox binary not found. Either install chrome browser or configure stella browser to firefox.")
+                    log("error", "firefox binary not found. either install chrome browser or configure stella browser to firefox.")
                     self.stop_server()
 
                 elif ("Message: Reached error page" in str(e)):
                     log("error", "app crashed, waiting for file changes to restart...")
                 
                 else:
-                    log("error", f"An unknown error occured: \n{e}")
+                    log("error", f"an unknown error occured: \n{e}")
                     self.stop_server()
 
         else:
-            log("error", f"Invalid browser specified: {browser}. stella supports only chrome and firefox. Execute `stella config --browser chrome|firefox` for configuring the browser.")
+            log("error", f"invalid browser specified: {browser}. stella supports only chrome and firefox. execute `stella config --browser chrome|firefox` for configuring the browser.")
             self.stop_server()
 
     def _restart(self):
@@ -110,11 +110,11 @@ class Reloader():
 
         except Exception:
             try:
-                log("error", "Browser reload didnt work, retrying in 5 seconds...")
+                log("error", "browser reload didnt work, retrying in 5 seconds...")
                 sleep(5)
                 helium.refresh()
             except Exception:
-                log("error", "Browser reload retry failed! Make sure you've provided stella the correct url to listen at. Waiting for file changes to restart...")
+                log("error", "browser reload retry failed! make sure you've provided stella the correct url to listen at. waiting for file changes to restart...")
 
     def restart(self) -> None:
         self.start_browser()
@@ -133,14 +133,26 @@ class Reloader():
 
             elif message == "rs":
                 log("info", "restarting the server")
-                self._restart()
+                try:
+                    self.ex.re_execute()
+                    sleep(1)
+                    helium.refresh()
+
+                except Exception:
+                    try:
+                        log("error", "browser reload didnt work, retrying in 5 seconds...")
+                        sleep(5)
+                        helium.refresh()
+                    except Exception:
+                        log("error", "browser reload retry failed! make sure you've provided stella the correct url to listen at. waiting for file changes to restart...")
+
 
     def stop_server(self):
         try:
             self.ex.close()
             helium.kill_browser()
         except Exception as e:
-            log("error", "An error occured while stopping the server, this should never happen.")
+            log("error", "an error occured while stopping the server, this should never happen.")
             print(e)
         finally:
             os._exit(0)
@@ -151,7 +163,7 @@ class Reloader():
         """
         log("stella", "starting stella")
         log("stella", f"executing `{self.command}` and listening at {self.url} on the browser")
-        log("stella", "input `rs` manually to restart the server and `ex` to stop the server")
+        log("stella", "input `rs` to manually restart the server and `ex` to stop the server")
         input_thread = Thread(target=self.manual_input)
         input_thread.start()
         self.ex.start()
