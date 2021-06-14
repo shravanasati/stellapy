@@ -133,9 +133,7 @@ class Reloader():
 
             elif message == "rs":
                 log("info", "restarting the server")
-                self.ex.re_execute()
-                sleep(1)
-                helium.refresh()
+                self._restart()
 
     def stop_server(self):
         try:
