@@ -8,9 +8,9 @@ stella is a command line utility made for streamlining web development experienc
 
 
 ## 📝 Table of Contents
-- [Installation](#-installation)
+- [Installation](#%EF%B8%8F-installation)
 - [Motivation](#-motivation)
-- [How does stella work?](#-how-does-stella-work?)
+- [How does stella work?](#%EF%B8%8F-how-does-stella-work)
 - [Usage](#-usage)
 - [Changelog](#-changelog)
 - [Versioning](#-versioning)
