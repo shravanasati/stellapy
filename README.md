@@ -1,10 +1,6 @@
 # stella
 
-[![](https://img.shields.io/github/license/Shravan-1908/stellapy?style=for-the-badge)]()
-[![](https://img.shields.io/github/issues/Shravan-1908/stellapy?style=for-the-badge)]()
-[![](https://img.shields.io/github/workflow/status/Shravan-1908/stellapy/Linting/main?style=for-the-badge)]()
-[![](https://img.shields.io/pypi/pyversions/stellapy?style=for-the-badge)]()
-[![](https://img.shields.io/pypi/v/stellapy?style=for-the-badge)]()
+![stella_demo](assets/stella.gif)
 
 stella is a command line utility made for streamlining web development experience. It is able to reload server as well as browser on every file change.
 
