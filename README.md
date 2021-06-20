@@ -2,6 +2,8 @@
 
 ![stella_demo](assets/stella.gif)
 
+[![Downloads](https://pepy.tech/badge/stellapy)](https://pepy.tech/project/stellapy)
+
 stella is a command line utility made for streamlining web development experience. It is able to reload server as well as browser on every file change.
 
 <br>
