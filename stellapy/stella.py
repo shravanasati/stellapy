@@ -3,7 +3,7 @@ from stellapy.reloader import Reloader
 from stellapy.configuration import Configuration
 
 NAME = "stella"
-VERSION = "0.1.2"
+VERSION = "0.2.0"
 
 # , help = "The url to listen to on the browser. Example: localhost:5000", prompt = "Enter the URL to listen to on the browser"
 # , help = "The command to execute on a file change. Example: python3 app.py", prompt = "Enter the command to execute on a file change"

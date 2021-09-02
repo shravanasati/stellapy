@@ -67,22 +67,22 @@ class Reloader():
             try:
                 helium.start_chrome(self.url)
             except Exception as e:
-                if re.match("Message: unknown error: cannot find Chrome binary", str(e)):
+                if ("Message: unknown error: cannot find Chrome binary" in str(e)):
                     log("error", "chrome binary not found. either install chrome browser or configure stella browser to firefox.")
                     self.stop_server()
                 
-                elif re.match("Reached error page" in str(e)):
+                elif ("Reached error page" in str(e)):
                     log("error", "app crashed, waiting for file changes to restart...")
                 
                 else:
-                    log("error", f"an unknown error occured: \n{e}")
+                    log("error", f"an unknown error occurred: \n{e}")
                     self.stop_server()
 
         elif browser == "firefox":
             try:
                 helium.start_firefox(self.url)
             except Exception as e:
-                if re.match("Message: unknown error: cannot find Firefox binary", str(e)):
+                if ("Message: unknown error: cannot find Firefox binary" in str(e)):
                     log("error", "firefox binary not found. either install chrome browser or configure stella browser to firefox.")
                     self.stop_server()
 
@@ -90,7 +90,7 @@ class Reloader():
                     log("error", "app crashed, waiting for file changes to restart...")
                 
                 else:
-                    log("error", f"an unknown error occured: \n{e}")
+                    log("error", f"an unknown error occurred: \n{e}")
                     self.stop_server()
 
         else:
