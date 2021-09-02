@@ -1,6 +1,7 @@
 import click
 from stellapy.reloader import Reloader
 from stellapy.configuration import Configuration
+from stellapy.doctor import Doctor
 
 NAME = "stella"
 VERSION = "0.2.0"
@@ -28,6 +29,13 @@ def run(command, url):
 	r = Reloader(command, url)
 	r.start_server()
 
+@main.command("doctor")
+def doctor():
+	"""
+	Run the doctor to check for errors in the configuration file.
+	"""
+	d = Doctor()
+	d.main()
 
 @main.command("config")
 @click.option("--browser", default = "chrome")
