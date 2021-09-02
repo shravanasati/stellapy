@@ -1,5 +1,6 @@
 import os
 
+
 def walk() -> list:
     """
     The `walk` function recursively searches for all files in the project returns a list of
@@ -8,12 +9,12 @@ def walk() -> list:
     supported_ext = {"html", "css", "js", "py", "rb", "go", "rs", "php", "java"}
     try:
         project_files = []
-        for (root,_,files) in os.walk('.', topdown=True):
+        for (root, _, files) in os.walk(".", topdown=True):
             if ".git" in root:
                 continue
 
             for file in files:
-                ext = file.split('.')[-1]
+                ext = file.split(".")[-1]
                 if ext in supported_ext:
                     project_files.append(os.path.join(root, file))
 
@@ -23,7 +24,8 @@ def walk() -> list:
         print(e)
         return []
 
-def get_file_content(filepath:str) -> str:
+
+def get_file_content(filepath: str) -> str:
     """
     `get_file_content` returns the content of the file.
     """
@@ -36,6 +38,7 @@ def get_file_content(filepath:str) -> str:
     except Exception as e:
         print(e)
         return ""
+
 
 # if __name__ == "__main__":
 #     for i in walk():

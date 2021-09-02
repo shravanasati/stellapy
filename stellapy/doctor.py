@@ -8,49 +8,54 @@ from stellapy.logger import log
 # TODO add a check for the existence of the config file
 # TODO check if the config file is valid
 
+
 class Doctor:
-	"""
-	base class for the stella doctor, which fixes the browser-webdriver incompatibility issues.
-	"""
-	def __init__(self):
-		log("info", "running the stella doctor")
-		self.config = Configuration().load_configuration()
+    """
+    base class for the stella doctor, which fixes the browser-webdriver incompatibility issues.
+    """
 
-	def _check_compatibility(self) -> bool:
-		"""
-		checks compatibility of the browser and the webdriver.
-		"""
-		browser = self.config.get('browser')
+    def __init__(self):
+        log("info", "running the stella doctor")
+        self.config = Configuration().load_configuration()
 
-		try:
-			if browser == "chrome":
-				driver = helium.start_chrome()
+    def _check_compatibility(self) -> bool:
+        """
+        checks compatibility of the browser and the webdriver.
+        """
+        browser = self.config.get("browser")
 
-				browser_version = driver.capabilities['browserVersion']
-				driver_version =  driver.capabilities['chrome']['chromedriverVersion']
-				driver.quit()
+        try:
+            if browser == "chrome":
+                driver = helium.start_chrome()
 
-				if browser_version[:2] != driver_version[:2]:
-					return False
+                browser_version = driver.capabilities["browserVersion"]
+                driver_version = driver.capabilities["chrome"]["chromedriverVersion"]
+                driver.quit()
 
-				return True
+                if browser_version[:2] != driver_version[:2]:
+                    return False
 
-			else:
-				log("info", "doctor support is only available for chrome at the moment.")
-				return True
+                return True
 
-		except Exception as e:
-			log("error", "an unknown error occurred: " + str(e))
+            else:
+                log(
+                    "info", "doctor support is only available for chrome at the moment."
+                )
+                return True
 
-	def main(self):
-		"""
-		Main doctor command.
-		"""
-		if not self._check_compatibility():
-			log("error", "browser error")
+        except Exception as e:
+            log("error", "an unknown error occurred: " + str(e))
 
-		else:
-			log("info", "everything's alright!")
+    def main(self):
+        """
+        Main doctor command.
+        """
+        if not self._check_compatibility():
+            log("error", "browser error")
+
+        else:
+            log("info", "everything's alright!")
+
 
 if __name__ == "__main__":
-	Doctor()._check_compatibility()
+    Doctor()._check_compatibility()

@@ -19,34 +19,38 @@ def main():
     """
     pass
 
+
 @main.command("run")
-@click.argument("command", required = True)
-@click.argument("url", required = True)
+@click.argument("command", required=True)
+@click.argument("url", required=True)
 def run(command, url):
-	"""
-	Run the server with stella. Expects two arguments - the command to execute and the URL to listen at on the browser.
-	"""
-	r = Reloader(command, url)
-	r.start_server()
+    """
+    Run the server with stella. Expects two arguments - the command to execute and the URL to listen at on the browser.
+    """
+    r = Reloader(command, url)
+    r.start_server()
+
 
 @main.command("doctor")
 def doctor():
-	"""
-	Run the doctor to check for errors in the configuration file.
-	"""
-	d = Doctor()
-	d.main()
+    """
+    Run the doctor to check for errors in the configuration file.
+    """
+    d = Doctor()
+    d.main()
+
 
 @main.command("config")
-@click.option("--browser", default = "chrome")
+@click.option("--browser", default="chrome")
 def config(browser):
-	"""
-	Configure stella for a personalised experience.
-	"""
-	c = Configuration()
-	config = c.load_configuration()
-	config["browser"] = browser
-	c.set_configuration(config)
+    """
+    Configure stella for a personalised experience.
+    """
+    c = Configuration()
+    config = c.load_configuration()
+    config["browser"] = browser
+    c.set_configuration(config)
+
 
 if __name__ == "__main__":
-	main()
+    main()

@@ -1,6 +1,7 @@
 from datetime import datetime
 
-def log(severity:str, message:str) -> None:
+
+def log(severity: str, message: str) -> None:
     """
     The `log` function logs the messages according to their severity.
     """
@@ -20,5 +21,7 @@ def log(severity:str, message:str) -> None:
         print(f"{color_red}[stella] {time} -> {message} {color_reset}")
 
     else:
-        print("FATAL ERROR: Invalid value of the 'severity' parameter of log function. This should never happen. You might want to open an issue on GitHub.")
+        print(
+            "FATAL ERROR: Invalid value of the 'severity' parameter of log function. This should never happen. You might want to open an issue on GitHub."
+        )
         quit(1)
