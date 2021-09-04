@@ -14,8 +14,18 @@ VERSION = "0.2.0"
 @click.version_option(VERSION, prog_name=NAME)
 def main():
     """
-    stella is a command line utility made to streamline your web development experience.
+    stella is a command line utility made to streamline your web development experience, by
+    providing hot reload capabilities for both the backend as well as the frontend code.
+
     Visit https://github.com/Shravan-1908/stellapy for more info.
+
+    Example Usage:
+
+    $ stella run 'python3 app.py' localhost:5000
+
+    $ stella config --browser firefox
+
+    $ stella doctor
     """
     pass
 
@@ -25,7 +35,9 @@ def main():
 @click.argument("url", required=True)
 def run(command, url):
     """
-    Run the server with stella. Expects two arguments - the command to execute and the URL to listen at on the browser.
+    Run the server with stella. Expects two arguments - the command to execute and the URL to listen at on the browser.\n
+    Example:\n
+    $ stella run 'node index.js' localhost:8000
     """
     r = Reloader(command, url)
     r.start_server()
@@ -34,7 +46,7 @@ def run(command, url):
 @main.command("doctor")
 def doctor():
     """
-    Run the doctor to check for errors in the configuration file.
+    Fix potential incompatibility issues.
     """
     d = Doctor()
     d.main()
@@ -44,7 +56,7 @@ def doctor():
 @click.option("--browser", default="chrome")
 def config(browser):
     """
-    Configure stella for a personalised experience.
+    Configure stella for a personalized experience.
     """
     c = Configuration()
     config = c.load_configuration()

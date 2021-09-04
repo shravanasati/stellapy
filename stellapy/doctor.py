@@ -45,6 +45,7 @@ class Doctor:
 
         except Exception as e:
             log("error", "an unknown error occurred: " + str(e))
+            return False
 
     def main(self):
         """
