@@ -40,4 +40,5 @@ jobs:
 
     - name: Type checking with mypy
       run: |
+        mypy --install-types
         mypy stellapy/ --ignore-missing-imports
