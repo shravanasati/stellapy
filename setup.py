@@ -14,7 +14,7 @@ setup(
     author="Shravan Asati",
     author_email="dev.shravan@protonmail.com",
     packages=find_packages(),
-    install_requires=["click", "helium"],
+    install_requires=["click", "helium", "colorama"],
     license="MIT",
     entry_points="""
 	[console_scripts]
