@@ -47,16 +47,24 @@ def run(command, url):
 def doctor():
     """
     Fix potential incompatibility issues.
+
+    Usage:
+
+    $ stella doctor
     """
     d = Doctor()
     d.main()
 
 
 @main.command("config")
-@click.option("--browser", default="chrome")
+@click.option("--browser", "-b", default="chrome", help = "Select the browser to listen the URL on.")
 def config(browser):
     """
     Configure stella for a personalized experience.
+
+    Usage:
+
+    $ stella config -b chrome
     """
     c = Configuration()
     config = c.load_configuration()

@@ -15,7 +15,7 @@ class Doctor:
     """
 
     def __init__(self):
-        log("info", "running the stella doctor")
+        log("stella", "running the stella doctor")
         self.config = Configuration().load_configuration()
 
     def _check_compatibility(self) -> bool:
@@ -39,7 +39,7 @@ class Doctor:
 
             else:
                 log(
-                    "info", "doctor support is only available for chrome at the moment."
+                    "error", "doctor support is only available for chrome at the moment."
                 )
                 return True
 
