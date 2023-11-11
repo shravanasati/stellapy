@@ -1,7 +1,6 @@
 import click
 from stellapy.reloader import Reloader
 from stellapy.configuration import Configuration
-from stellapy.doctor import Doctor
 from colorama import init as color_init
 
 color_init()
@@ -18,7 +17,7 @@ VERSION = "0.2.0"
 def main():
     """
     stella is a command line utility made to streamline your web development experience, by
-    providing hot reload capabilities for both the backend as well as the frontend code.
+    providing reload capabilities for both the backend as well as the frontend code.
 
     Visit https://github.com/Shravan-1908/stellapy for more info.
 
@@ -27,18 +26,17 @@ def main():
     $ stella run 'python3 app.py' localhost:5000
 
     $ stella config --browser firefox
-
-    $ stella doctor
     """
     pass
 
 
 @main.command("run")
 @click.argument("command", required=True)
-@click.argument("url", required=True)
+@click.argument("url", required=False)
 def run(command, url):
     """
-    Run the server with stella. Expects two arguments - the command to execute and the URL to listen at on the browser.\n
+    Run the server with stella. Expects two arguments - the command to execute and the optional
+    URL to listen at on the browser.\n
     Example:\n
     $ stella run 'node index.js' localhost:8000
     """
@@ -46,21 +44,10 @@ def run(command, url):
     r.start_server()
 
 
-@main.command("doctor")
-def doctor():
-    """
-    Fix potential incompatibility issues.
-
-    Usage:
-
-    $ stella doctor
-    """
-    d = Doctor()
-    d.main()
-
-
 @main.command("config")
-@click.option("--browser", "-b", default="chrome", help = "Select the browser to listen the URL on.")
+@click.option(
+    "--browser", "-b", default="chrome", help="Select the browser to listen the URL on."
+)
 def config(browser):
     """
     Configure stella for a personalized experience.

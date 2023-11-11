@@ -17,9 +17,9 @@ setup(
     install_requires=["click", "helium", "colorama"],
     license="MIT",
     entry_points="""
-	[console_scripts]
-	stella=stellapy.stella:main
-	""",
+    [console_scripts]
+    stella=stellapy.stella:main
+    """,
     keywords=[
         "web dev",
         "development",

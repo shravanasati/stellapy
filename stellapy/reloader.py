@@ -2,7 +2,6 @@ import os
 from time import sleep
 import helium
 from threading import Thread
-import re
 
 from stellapy.logger import log
 from stellapy.walker import walk, get_file_content
@@ -15,11 +14,12 @@ class Reloader:
     The `Reloader` class.
     """
 
-    def __init__(self, command: str, url: str) -> None:
+    def __init__(self, command: str, url: str | None) -> None:
         self.project_data = self.get_project_data()
         self.command = command
-        self.ex = Executor(self.command)
+        self.executor = Executor(self.command)
         self.url = url
+        self.RELOAD_BROWSER = bool(self.url)
         c = Configuration()
         self.config = c.load_configuration()
 
@@ -113,9 +113,10 @@ class Reloader:
                     "info",
                     "detected changes in the project, reloading server and browser",
                 )
-                self.ex.re_execute()
+                self.executor.re_execute()
                 sleep(1)
-                helium.refresh()
+                if self.RELOAD_BROWSER:
+                    helium.refresh()
 
             else:
                 sleep(1)
@@ -124,7 +125,8 @@ class Reloader:
             try:
                 log("error", "browser reload didnt work, retrying in 5 seconds...")
                 sleep(5)
-                helium.refresh()
+                if self.RELOAD_BROWSER:
+                    helium.refresh()
             except Exception:
                 log(
                     "error",
@@ -132,7 +134,8 @@ class Reloader:
                 )
 
     def restart(self) -> None:
-        self.start_browser()
+        if self.RELOAD_BROWSER:
+            self.start_browser()
         while True:
             self._restart()
 
@@ -149,9 +152,10 @@ class Reloader:
             elif message == "rs":
                 log("info", "restarting the server")
                 try:
-                    self.ex.re_execute()
-                    sleep(1)
-                    helium.refresh()
+                    self.executor.re_execute()
+                    if self.RELOAD_BROWSER:
+                        sleep(1)
+                        helium.refresh()
 
                 except Exception:
                     try:
@@ -160,7 +164,8 @@ class Reloader:
                             "browser reload didnt work, retrying in 5 seconds...",
                         )
                         sleep(5)
-                        helium.refresh()
+                        if self.RELOAD_BROWSER:
+                            helium.refresh()
                     except Exception:
                         log(
                             "error",
@@ -169,8 +174,9 @@ class Reloader:
 
     def stop_server(self):
         try:
-            self.ex.close()
-            helium.kill_browser()
+            self.executor.close()
+            if self.RELOAD_BROWSER:
+                helium.kill_browser()
         except Exception as e:
             log(
                 "error",
@@ -185,6 +191,7 @@ class Reloader:
         Starts the server. All reloading and stuff is done here.
         """
         log("stella", "starting stella")
+        # todo log configuration file being used
         log(
             "stella",
             f"executing `{self.command}` and listening at {self.url} on the browser",
@@ -195,5 +202,5 @@ class Reloader:
         )
         input_thread = Thread(target=self.manual_input)
         input_thread.start()
-        self.ex.start()
+        self.executor.start()
         self.restart()
