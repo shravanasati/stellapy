@@ -21,8 +21,8 @@ class Reloader:
         self.executor = Executor(self.command)
         self.url = url
         self.RELOAD_BROWSER = bool(self.url)
-        c = Configuration()
-        self.config = c.load_configuration()
+        self.config_object = Configuration()
+        self.config = self.config_object.load_configuration()
 
     @staticmethod
     def get_project_data() -> dict:
@@ -192,7 +192,7 @@ class Reloader:
         Starts the server. All reloading and stuff is done here.
         """
         log("stella", "starting stella")
-        # todo log configuration file being used
+        log("stella", f"using config file located at `{self.config_object.config_file}`")
         log(
             "stella",
             f"executing `{self.command}` and listening at {self.url} on the browser",

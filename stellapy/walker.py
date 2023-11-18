@@ -1,4 +1,5 @@
 import os
+from logging import exception
 from pathlib import Path
 
 import gitignorefile
@@ -43,8 +44,12 @@ def get_file_content(filepath: str) -> str:
 
         return fc
 
+    except UnicodeDecodeError:
+        # binary file, ignore
+        return ""
+
     except Exception as e:
-        print(e)
+        exception(e)
         return ""
 
 

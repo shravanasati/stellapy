@@ -1,7 +1,7 @@
 import json
 import os
 
-from walker import find_config_file
+from stellapy.walker import find_config_file
 
 
 class Configuration:
