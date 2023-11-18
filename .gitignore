@@ -140,6 +140,8 @@ cython_debug/
 # Visual Studio Code
 .vscode/
 
+*.exe
+
 # For testing purposes
 test.py
 test.js

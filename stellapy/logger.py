@@ -1,27 +1,30 @@
 from datetime import datetime
+from rich import print
+from rich.text import Text
 
 
 def log(severity: str, message: str) -> None:
     """
     The `log` function logs the messages according to their severity.
     """
-    time = datetime.now().strftime("%H:%M:%S")
-    color_red = "\033[31m"
-    color_green = "\033[32m"
-    color_blue = "\033[36m"
-    color_reset = "\033[0m"
-
+    current_time = datetime.now().strftime("%H:%M:%S")
     if severity == "stella":
-        print(f"{color_blue}[stella] {time} -> {message} {color_reset}")
+        print(Text(f"[stella] {current_time} -> {message}", style="blue"))
 
     elif severity == "info":
-        print(f"{color_green}[stella] {time} -> {message} {color_reset}")
+        print(Text(f"[stella] {current_time} -> {message}", style="green"))
 
     elif severity == "error":
-        print(f"{color_red}[stella] {time} -> {message} {color_reset}")
+        print(Text(f"[stella] {current_time} -> {message}", style="red"))
 
     else:
         print(
             "FATAL ERROR: Invalid value of the 'severity' parameter of log function. This should never happen. You might want to open an issue on GitHub."
         )
         quit(1)
+
+
+if __name__ == "__main__":
+    log("stella", "test1")
+    log("info", "test2")
+    log("error", "test3")
