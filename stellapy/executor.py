@@ -1,9 +1,10 @@
-import sys
-import subprocess
 import os
-import signal
 import shlex
+import signal
+import subprocess
+import sys
 from platform import system
+
 from stellapy.logger import log
 
 WIN = system() == "Windows"

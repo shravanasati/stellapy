@@ -1,9 +1,7 @@
 import click
-from stellapy.reloader import Reloader
-from stellapy.configuration import Configuration
-from colorama import init as color_init
 
-color_init()
+from stellapy.configuration import Configuration
+from stellapy.reloader import Reloader
 
 NAME = "stella"
 VERSION = "0.2.0"

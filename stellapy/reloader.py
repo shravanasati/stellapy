@@ -1,12 +1,13 @@
 import os
-from time import sleep
-import helium
 from threading import Thread
+from time import sleep
 
-from stellapy.logger import log
-from stellapy.walker import walk, get_file_content
-from stellapy.executor import Executor
+import helium
+
 from stellapy.configuration import Configuration
+from stellapy.executor import Executor
+from stellapy.logger import log
+from stellapy.walker import get_file_content, walk
 
 
 class Reloader:

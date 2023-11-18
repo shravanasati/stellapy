@@ -1,0 +1,54 @@
+[tool.poetry]
+name = "stellapy"
+version = "0.2.0"
+description = "Streamline your web dev experience with stella - reload for the terminal as well as browser."
+
+authors = ["Shravan Asati <dev.shravan@protonmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+homepage = "https://github.com/Shravan-1908/stellapy"
+repository = "https://github.com/Shravan-1908/stellapy"
+documentation = "https://github.com/Shravan-1908/stellapy#readme"
+
+keywords = [
+	"web dev",
+	"development",
+	"website",
+	"python",
+	"cli",
+	"stella",
+	"reloader",
+	"walker",
+	"executor",
+	"helium",
+	"selenium",
+	"automation",
+]
+classifiers = [
+	"Development Status :: 4 - Beta",
+	"Intended Audience :: Developers",
+	"License :: OSI Approved :: MIT License",
+	"Programming Language :: Python :: 3.7",
+	"Programming Language :: Python :: 3.8",
+	"Programming Language :: Python :: 3.9",
+	"Operating System :: Unix",
+	"Operating System :: MacOS :: MacOS X",
+	"Operating System :: Microsoft :: Windows",
+]
+
+[tool.poetry.scripts]
+stella = "stellapy.stella:main"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+click = "^8.1.7"
+helium = "^4.0.0"
+rich = "^13.7.0"
+ruamel-yaml = "^0.18.5"
+gitignorefile = "^1.1.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

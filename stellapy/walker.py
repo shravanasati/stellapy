@@ -1,6 +1,7 @@
 import os
-from gitignore_parser import parse_gitignore
 from pathlib import Path
+
+import gitignorefile
 
 
 def walk() -> list:
@@ -8,17 +9,16 @@ def walk() -> list:
     The `walk` function recursively searches for all files in the project returns a list of
     valid files.
     """
-    gitignore_file_path = find_gitignore()
+    ignore_filepath = find_ignore_file()
     ignore_match = (
-        parse_gitignore(gitignore_file_path, "./")
-        if gitignore_file_path
+        gitignorefile.parse(ignore_filepath)
+        if ignore_filepath
         else lambda _: False
     )
 
     try:
         # project_files = []
         for root, _, files in os.walk(".", topdown=True):
-            # todo ignore match not working
             if ".git" in root or ignore_match(root):
                 continue
 
@@ -48,7 +48,7 @@ def get_file_content(filepath: str) -> str:
         return ""
 
 
-def find_gitignore(base_dir: str | None = None) -> str | None:
+def find_ignore_file(base_dir: str | None = None) -> str | None:
     """
     Recursively tries to find the `stella.ignore` in current directory and its parents until it's found,
     if not, reverts to `.gitignore`.
@@ -84,7 +84,7 @@ def __find_file_recursively(filename: str, base_dir: str | None = None) -> str |
 
 
 if __name__ == "__main__":
-    print(find_gitignore())
+    print(find_ignore_file())
     print(find_config_file())
     input()
     for i in walk():
