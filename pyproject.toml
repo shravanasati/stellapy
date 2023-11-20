@@ -41,7 +41,7 @@ classifiers = [
 stella = "stellapy.stella:main"
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.10"
 click = "^8.1.7"
 helium = "^4.0.0"
 rich = "^13.7.0"

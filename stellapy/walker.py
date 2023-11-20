@@ -30,13 +30,13 @@ def walk() -> list:
         # return project_files
 
     except Exception as e:
-        print(e)
+        exception(e)
         return []
 
 
 def get_file_content(filepath: str) -> str:
     """
-    `get_file_content` returns the content of the file.
+    `get_file_content` returns the content of the file. Ignores binary files.
     """
     try:
         with open(filepath, encoding="utf-8") as f:
