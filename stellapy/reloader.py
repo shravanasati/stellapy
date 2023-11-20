@@ -192,7 +192,9 @@ class Reloader:
         Starts the server. All reloading and stuff is done here.
         """
         log("stella", "starting stella")
-        log("stella", f"using config file located at `{self.config_object.config_file}`")
+        log(
+            "stella", f"using config file located at `{self.config_object.config_file}`"
+        )
         log(
             "stella",
             f"executing `{self.command}` and listening at {self.url} on the browser",

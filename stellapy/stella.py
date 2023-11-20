@@ -1,10 +1,11 @@
-from logging import exception
 import os
+from logging import exception
+
 import click
 
 from stellapy.configuration import Configuration
-from stellapy.reloader import Reloader
 from stellapy.logger import log
+from stellapy.reloader import Reloader
 
 NAME = "stella"
 VERSION = "0.2.0"
@@ -73,24 +74,6 @@ def init():
     except Exception as e:
         log("error", "an unknown error occured!")
         exception(e)
-
-
-@main.command("config")
-@click.option(
-    "--browser", "-b", default="chrome", help="Select the browser to listen the URL on."
-)
-def config(browser):
-    """
-    Configure stella for a personalized experience.
-
-    Usage:
-
-    $ stella config -b chrome
-    """
-    c = Configuration()
-    config = c.load_configuration()
-    config["browser"] = browser
-    c.set_configuration(config)
 
 
 if __name__ == "__main__":

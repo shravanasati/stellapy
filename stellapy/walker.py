@@ -12,9 +12,7 @@ def walk() -> list:
     """
     ignore_filepath = find_ignore_file()
     ignore_match = (
-        gitignorefile.parse(ignore_filepath)
-        if ignore_filepath
-        else lambda _: False
+        gitignorefile.parse(ignore_filepath) if ignore_filepath else lambda _: False
     )
 
     try:

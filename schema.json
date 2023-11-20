@@ -1,0 +1,81 @@
+{
+	"$schema": "http://json-schema.org/draft-06/schema#",
+	"$ref": "#/definitions/Stella",
+	"definitions": {
+		"Stella": {
+			"type": "object",
+			"additionalProperties": false,
+			"properties": {
+				"browser": {
+					"type": "string",
+					"enum": ["chrome", "firefox"],
+					"description": "The browser to be used."
+				},
+				"include_only": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"description": "gitignore style include-only patterns."
+				},
+				"scripts": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/Script"
+					},
+					"description": "List of user-defined scripts. Similar to npm scripts."
+				},
+				"poll_interval": {
+					"type": "integer",
+					"description": "The interval in milliseconds to check for file change."
+				}
+			},
+			"required": [
+				"browser",
+				"include_only",
+				"poll_interval",
+				"scripts"
+			],
+			"title": "Stella"
+		},
+		"Script": {
+			"type": "object",
+			"additionalProperties": false,
+			"properties": {
+				"name": {
+					"type": "string",
+					"description": "Name of the script. This name is used in stella run command."
+				},
+				"url": {
+					"type": "string",
+					"description": "The optional URL to listen at browser."
+				},
+				"command": {
+					"oneOf": [
+						{
+							"type": "string"
+						},
+						{
+							"type": "array",
+							"items": {
+								"type": "string"
+							}
+						}
+					],
+					"description": "The command(s) to execute on the terminal. It can be either a single string or a list of strings."
+				},
+				"shell": {
+					"type": "boolean",
+					"description": "Whether to execute these commands within a shell."
+				}
+			},
+			"required": [
+				"command",
+				"name",
+				"shell",
+				"url"
+			],
+			"title": "Script"
+		}
+	}
+}

@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=C:\\Users\\devsh\\code\\stellapy\\schema.json
+
+browser: "chrome"
+include_only: []
+poll_interval: 500
+scripts:
+  - name: default
+    url: ""
+    shell: true
+    command: echo 'hello world'
