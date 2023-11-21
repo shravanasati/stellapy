@@ -32,6 +32,7 @@ def main():
     pass
 
 
+# todo add a config file option
 @main.command("run")
 @click.argument("command", required=True)
 @click.argument("url", required=False)
@@ -42,6 +43,8 @@ def run(command, url):
     Example:\n
     $ stella run 'node index.js' localhost:8000
     """
+    # todo alter this documentation
+    # todo load scripts from stella.yml
     r = Reloader(command, url)
     r.start_server()
 
@@ -58,7 +61,7 @@ def init():
         if os.path.exists("./stella.yml"):
             log(
                 "error",
-                "a stella.yml already exists in the current directory, remove it to run init again.",
+                "a stella.yml file already exists in the current directory, remove it to run init again.",
             )
             return
         with open("./stella.yml", "w", encoding="utf-8") as f:

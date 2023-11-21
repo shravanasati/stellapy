@@ -8,3 +8,15 @@ scripts:
     url: ""
     shell: true
     command: echo 'hello world'
+
+  - name: multi
+    url: ""
+    shell: true
+    command:
+      - pwd
+      - bench --help
+
+  - name: server
+    url: "localhost:8000"
+    shell: false
+    command: python -m http.server
