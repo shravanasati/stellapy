@@ -3,6 +3,7 @@
 browser: "chrome"
 include_only: []
 poll_interval: 500
+browser_wait_interval: 1000
 scripts:
   - name: default
     url: ""

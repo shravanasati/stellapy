@@ -27,13 +27,18 @@
 				},
 				"poll_interval": {
 					"type": "integer",
-					"description": "The interval in milliseconds to check for file change."
+					"description": "The interval in milliseconds to check for file changes."
+				},
+				"browser_wait_interval": {
+					"type": "integer",
+					"description": "The interval in milliseconds to wait to refresh browser window after executing command(s) on the terminal."
 				}
 			},
 			"required": [
 				"browser",
 				"include_only",
 				"poll_interval",
+				"browser_wait_interval",
 				"scripts"
 			],
 			"title": "Stella"

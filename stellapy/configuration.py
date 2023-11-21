@@ -38,8 +38,9 @@ class Configuration:
 
     browser: str
     include_only: list[str]
-    scripts: list[Script]
     poll_interval: float  # milliseconds
+    browser_wait_interval: float
+    scripts: list[Script]
 
     @classmethod
     def default(cls):
@@ -48,6 +49,7 @@ class Configuration:
             include_only=[],
             scripts=[Script("default", "", "echo 'hello'", True)],
             poll_interval=500,
+            browser_wait_interval=1000
         )
 
     def to_yaml(self):

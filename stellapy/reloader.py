@@ -1,10 +1,11 @@
+from logging import exception
 import os
 from threading import Thread
 from time import sleep
 
 import helium
 
-from stellapy.configuration import Configuration
+from stellapy.configuration import ConfigurationManager
 from stellapy.executor import Executor
 from stellapy.logger import log
 from stellapy.walker import get_file_content, walk
@@ -21,8 +22,12 @@ class Reloader:
         self.executor = Executor(self.command)
         self.url = url
         self.RELOAD_BROWSER = bool(self.url)
-        self.config_object = Configuration()
-        self.config = self.config_object.load_configuration()
+        self.config_manager = ConfigurationManager()
+        self.config = self.config_manager.load_configuration()
+
+        # convert to seconds
+        self.poll_interval = self.config.poll_interval / 1000
+        self.browser_wait_interval = self.config.browser_wait_interval / 1000
 
     @staticmethod
     def get_project_data() -> dict:
@@ -57,13 +62,13 @@ class Reloader:
 
         except Exception as e:
             print("FATAL ERROR: This should never happen.")
-            print(e)
-            quit(1)
+            exception(e)
+            os._exit(1)
 
         return False
 
     def start_browser(self):
-        browser = self.config["browser"]
+        browser = self.config.browser
         if browser == "chrome":
             try:
                 helium.start_chrome(self.url)
@@ -89,7 +94,7 @@ class Reloader:
                 if "Message: unknown error: cannot find Firefox binary" in str(e):
                     log(
                         "error",
-                        "firefox binary not found. either install chrome browser or configure stella browser to firefox.",
+                        "firefox binary not found. either install chrome browser or configure stella to use firefox.",
                     )
                     self.stop_server()
 
@@ -115,23 +120,26 @@ class Reloader:
                     "detected changes in the project, reloading server and browser",
                 )
                 self.executor.re_execute()
-                sleep(1)
+                sleep(self.browser_wait_interval)
                 if self.RELOAD_BROWSER:
                     helium.refresh()
 
             else:
-                sleep(1)
-
+                # poll interval is in milliseconds, sleep takes parameter in seconds
+                sleep(self.poll_interval)
         except Exception:
             try:
-                log("error", "browser reload didnt work, retrying in 5 seconds...")
-                sleep(5)
+                log(
+                    "error",
+                    f"browser reload didnt work, retrying in {2 * self.browser_wait_interval} seconds...",
+                )
+                sleep(2 * self.config.browser_wait_interval)
                 if self.RELOAD_BROWSER:
                     helium.refresh()
             except Exception:
                 log(
                     "error",
-                    "browser reload retry failed! make sure you've provided stella the correct url to listen at. waiting for file changes to restart...",
+                    "browser reload retry failed! make sure you've provided stella the correct url to listen at. waiting for file changes or `rb`/`rs` input to restart...",
                 )
 
     def restart(self) -> None:
@@ -155,23 +163,33 @@ class Reloader:
                 try:
                     self.executor.re_execute()
                     if self.RELOAD_BROWSER:
-                        sleep(1)
+                        sleep(self.config.browser_wait_interval)
                         helium.refresh()
 
                 except Exception:
                     try:
                         log(
                             "error",
-                            "browser reload didnt work, retrying in 5 seconds...",
+                            f"browser reload didnt work, retrying in {2 * self.browser_wait_interval} seconds...",
                         )
-                        sleep(5)
+                        sleep(2 * self.browser_wait_interval)
                         if self.RELOAD_BROWSER:
                             helium.refresh()
                     except Exception:
                         log(
                             "error",
-                            "browser reload retry failed! make sure you've provided stella the correct url to listen at. waiting for file changes to restart...",
+                            "browser reload retry failed! make sure you've provided stella the correct url to listen at. waiting for file changes or `rb`/`rs` input to restart...",
                         )
+
+            elif message == "rb":
+                if self.RELOAD_BROWSER:
+                    try:
+                        log("info", "trying to reload browser window")
+                        helium.refresh()
+                    except Exception:
+                        log("error", "unable to refresh browser window")
+                else:
+                    log("stella", "no browser URL is configured, can't refresh")
 
     def stop_server(self):
         try:
@@ -183,7 +201,7 @@ class Reloader:
                 "error",
                 "an error occured while stopping the server, this should never happen.",
             )
-            print(e)
+            exception(e)
         finally:
             os._exit(0)
 
@@ -193,15 +211,17 @@ class Reloader:
         """
         log("stella", "starting stella")
         log(
-            "stella", f"using config file located at `{self.config_object.config_file}`"
+            "stella",
+            f"using config file located at `{self.config_manager.config_file}`",
+        )
+        browser_text = f"and listening at `{self.url} ` on the browser"
+        log(
+            "stella",
+            f"executing `{self.command}` {browser_text if self.RELOAD_BROWSER else ''}",
         )
         log(
             "stella",
-            f"executing `{self.command}` and listening at {self.url} on the browser",
-        )
-        log(
-            "stella",
-            "input `rs` to manually restart the server and `ex` to stop the server",
+            "input `rs` to manually restart the server, `rb` to refresh browser page & `ex` to stop the server",
         )
         input_thread = Thread(target=self.manual_input)
         input_thread.start()
