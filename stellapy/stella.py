@@ -36,8 +36,8 @@ def main():
 @main.command("run")
 @click.argument("script", default="default")
 @click.option(
-    "config-file",
-    "c",
+    "--config-file",
+    "-c",
     required=False,
     type=str,
     help="Path to the config file that is to be used.",
@@ -55,8 +55,8 @@ def run(script: str, config_file: str):
     current directory and its parents.
 
     Example:\n
-    $ stella run  // runs the default script from config
-    $ stella run [script_name]  // runs the given script from config
+    $ stella run  // runs the default script from config \n
+    $ stella run [script_name]  // runs the given script from config \n
     $ stella run 'node index.js' localhost:8000  // in case you don't want to use config file
     """
     config = None
@@ -69,7 +69,7 @@ def run(script: str, config_file: str):
     except TypeError:
         log(
             "error",
-            "the config file is corrupted/doesn't have enough parameters. please refer to the config file documentation at https://github.com/Shravan-1908/stellapy#readme or edit stella.yml file using hints given by yaml language server in the IDE of your choice",
+            "the config file is corrupted/doesn't have enough parameters. \n 1 refer to the config file documentation at https://github.com/Shravan-1908/stellapy#readme \n or \n 2. edit stella.yml file using hints given by yaml language server in the IDE of your choice \n or \n 3. remove existing stella.yml and run `stella init`",
         )
         exit(1)
 

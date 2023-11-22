@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=C:\\Users\\devsh\\code\\stellapy\\schema.json
 
-browser: "chrome"
+browser: "firefox"
 include_only: []
 poll_interval: 500
 browser_wait_interval: 1000
@@ -14,8 +14,14 @@ scripts:
     url: ""
     shell: true
     command:
-      - pwd
       - bench --help
+      - ls
+      - pwd
+
+  - name: ls
+    url: ''
+    shell: true
+    command: ls
 
   - name: server
     url: "localhost:8000"

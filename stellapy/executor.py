@@ -4,6 +4,7 @@ import signal
 import subprocess
 import sys
 from platform import system
+from stellapy.configuration import Script
 
 from stellapy.logger import log
 
@@ -15,10 +16,19 @@ class Executor:
     base class for executing sys calls.
     """
 
-    # todo handle executing multiple commands
+    def __init__(self, script: Script) -> None:
+        self.__command = self.build_command(script)
+        self.shell = script.shell
+        # print(self.__command, self.shell)
 
-    def __init__(self, command: str) -> None:
-        self.__command = shlex.split(command)
+    @staticmethod
+    def build_command(script: Script):
+        if isinstance(script.command, str):
+            return shlex.split(script.command)
+        elif isinstance(script.command, list):
+            return " && ".join(script.command)
+        else:
+            raise TypeError(f"invalid type of {script.command=}")
 
     def start(self):
         try:
@@ -28,6 +38,7 @@ class Executor:
                     stdout=sys.stdout,
                     stderr=sys.stderr,
                     creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
+                    shell=self.shell
                 )
             else:
                 self.__process = subprocess.Popen(
@@ -35,6 +46,7 @@ class Executor:
                     stdout=sys.stdout,
                     stderr=sys.stderr,
                     preexec_fn=os.setsid,  # type: ignore (unix based systems)
+                    shell=self.shell
                 )
         except Exception as e:
             log("error", "the app crashed, waiting for file changes to restart...")

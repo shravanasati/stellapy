@@ -5,7 +5,7 @@ from time import sleep
 
 import helium
 
-from stellapy.configuration import Configuration, Script
+from stellapy.configuration import Configuration
 from stellapy.executor import Executor
 from stellapy.logger import log
 from stellapy.walker import get_file_content, walk
@@ -32,8 +32,7 @@ class Reloader:
             )
             exit(1)
         self.config_file = config_file
-        self.command = self.build_command(self.script)
-        self.executor = Executor(self.command)
+        self.executor = Executor(self.script)
         self.url = self.script.url
         self.RELOAD_BROWSER = bool(self.url)
         self.project_data = self.get_project_data()
@@ -41,15 +40,6 @@ class Reloader:
         # convert to seconds
         self.poll_interval = self.config.poll_interval / 1000
         self.browser_wait_interval = self.config.browser_wait_interval / 1000
-
-    @staticmethod
-    def build_command(script: Script):
-        if isinstance(script.command, str):
-            return script.command
-        elif isinstance(script.command, list):
-            return " && ".join(script.command)
-        else:
-            raise TypeError(f"invalid type of {script.command=}")
 
     @staticmethod
     def get_project_data() -> dict:
@@ -147,7 +137,6 @@ class Reloader:
                     helium.refresh()
 
             else:
-                # poll interval is in milliseconds, sleep takes parameter in seconds
                 sleep(self.poll_interval)
         except Exception:
             try:
@@ -174,6 +163,7 @@ class Reloader:
         """
         Manual restart and exit.
         """
+        # todo add rc command -> it ought to refresh configuration
         while True:
             message = input().lower().strip()
             if message == "ex":
@@ -236,10 +226,10 @@ class Reloader:
             "stella",
             f"using config file located at `{self.config_file}`",
         )
-        browser_text = f"and listening at `{self.url} ` on the browser"
+        browser_text = f"and listening at `{self.url}` on the browser"
         log(
             "stella",
-            f"executing `{self.command}` {browser_text if self.RELOAD_BROWSER else ''}",
+            f"executing `{self.script.command if self.script else ''}` {browser_text if self.RELOAD_BROWSER else ''}",
         )
         browser_text = ", `rb` to refresh browser page"
         log(

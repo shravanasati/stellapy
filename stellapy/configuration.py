@@ -73,7 +73,7 @@ class Configuration:
     def find_script(self, script_name: str):
         script_name = script_name.lower()
         for script in self.scripts:
-            if script.name.lower() == script:
+            if script.name.lower() == script_name:
                 return script
 
         return None
@@ -124,4 +124,6 @@ class ConfigurationManager:
 
 if __name__ == "__main__":
     # print(Configuration.from_yaml(Configuration.default().to_yaml()))
-    print(ConfigurationManager().config_file)
+    cm = ConfigurationManager()
+    print(cm.config_file)
+    print(cm.config.find_script("default"))
