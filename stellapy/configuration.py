@@ -49,7 +49,7 @@ class Configuration:
             include_only=[],
             scripts=[Script("default", "", "echo 'hello'", True)],
             poll_interval=500,
-            browser_wait_interval=1000
+            browser_wait_interval=1000,
         )
 
     def to_yaml(self):
@@ -70,8 +70,13 @@ class Configuration:
         data["scripts"] = scripts
         return cls(**data)
 
+    def find_script(self, script_name: str):
+        script_name = script_name.lower()
+        for script in self.scripts:
+            if script.name.lower() == script:
+                return script
 
-# todo handle incorrect configuration using TypeError
+        return None
 
 
 class ConfigurationManager:
@@ -83,7 +88,7 @@ class ConfigurationManager:
         """
         Constructs the `Configuration` class.
         """
-        self.config_file = ""
+        self.config_file: str | None = None
 
         # * if a config file is given use it
         if config_file:
@@ -99,7 +104,7 @@ class ConfigurationManager:
         if not self.config_file:
             # self.config_file = os.path.join(os.path.expanduser("~"), "stella.yml")
             raise ConfigFileNotFound(
-                f"Unable to find `stella.yml` in `{os.getcwd()}` or its parents. Try running `stella init`."
+                f"unable to find `stella.yml` in `{os.getcwd()}` or its parents. try running `stella init`."
             )
 
         # if not os.path.exists(self.config_file):
@@ -113,6 +118,7 @@ class ConfigurationManager:
             self.config = Configuration.from_yaml(fc)
 
     def load_configuration(self) -> Configuration:
+        # todo verify datatype of each attribute in Configuration
         return self.config
 
 

@@ -1,11 +1,11 @@
-from logging import exception
 import os
+from logging import exception
 from threading import Thread
 from time import sleep
 
 import helium
 
-from stellapy.configuration import ConfigurationManager
+from stellapy.configuration import Configuration, Script
 from stellapy.executor import Executor
 from stellapy.logger import log
 from stellapy.walker import get_file_content, walk
@@ -16,18 +16,40 @@ class Reloader:
     The `Reloader` class.
     """
 
-    def __init__(self, command: str, url: str | None) -> None:
-        self.project_data = self.get_project_data()
-        self.command = command
+    def __init__(
+        self, config: Configuration, script_name: str, config_file: str
+    ) -> None:
+        """
+        Constructs the Reloader class. Sets a lot of instance variables used from the config. The
+        `config_file` is the path to the config file.
+        """
+        self.config = config
+        self.script = self.config.find_script(script_name)
+        if not self.script:
+            log(
+                "error",
+                f"didn't find any script named {script_name.lower()} in config located at `{config_file}`",
+            )
+            exit(1)
+        self.config_file = config_file
+        self.command = self.build_command(self.script)
         self.executor = Executor(self.command)
-        self.url = url
+        self.url = self.script.url
         self.RELOAD_BROWSER = bool(self.url)
-        self.config_manager = ConfigurationManager()
-        self.config = self.config_manager.load_configuration()
+        self.project_data = self.get_project_data()
 
         # convert to seconds
         self.poll_interval = self.config.poll_interval / 1000
         self.browser_wait_interval = self.config.browser_wait_interval / 1000
+
+    @staticmethod
+    def build_command(script: Script):
+        if isinstance(script.command, str):
+            return script.command
+        elif isinstance(script.command, list):
+            return " && ".join(script.command)
+        else:
+            raise TypeError(f"invalid type of {script.command=}")
 
     @staticmethod
     def get_project_data() -> dict:
@@ -212,16 +234,17 @@ class Reloader:
         log("stella", "starting stella")
         log(
             "stella",
-            f"using config file located at `{self.config_manager.config_file}`",
+            f"using config file located at `{self.config_file}`",
         )
         browser_text = f"and listening at `{self.url} ` on the browser"
         log(
             "stella",
             f"executing `{self.command}` {browser_text if self.RELOAD_BROWSER else ''}",
         )
+        browser_text = ", `rb` to refresh browser page"
         log(
             "stella",
-            "input `rs` to manually restart the server, `rb` to refresh browser page & `ex` to stop the server",
+            f"input `rs` to manually restart the server{browser_text if self.RELOAD_BROWSER else ''} & `ex` to stop the server",
         )
         input_thread = Thread(target=self.manual_input)
         input_thread.start()

@@ -14,6 +14,7 @@ class Executor:
     """
     base class for executing sys calls.
     """
+
     # todo handle executing multiple commands
 
     def __init__(self, command: str) -> None:
