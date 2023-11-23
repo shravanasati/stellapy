@@ -7,7 +7,7 @@ browser_wait_interval: 1000
 scripts:
   - name: default
     url: ""
-    shell: true
+    shell: false
     command: 
       - emozi hello world
 

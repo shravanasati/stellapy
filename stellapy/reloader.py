@@ -170,12 +170,11 @@ class Reloader:
                 self.stop_server()
 
             elif message == "rs":
-                # todo bug - rs results in probably sleeping
                 log("info", "restarting the server")
                 try:
                     self.executor.re_execute()
                     if self.RELOAD_BROWSER:
-                        sleep(self.config.browser_wait_interval)
+                        sleep(self.browser_wait_interval)
                         helium.refresh()
 
                 except Exception:
@@ -204,8 +203,9 @@ class Reloader:
                     log("stella", "no browser URL is configured, can't refresh")
 
             # ! too much black magic required to have configuration reloaded
-            # ! it's because stop_server calls os._exit and that stops the entire progam because there 
+            # ! it's because stop_server calls os._exit and that stops the entire progam because there
             # ! is no way to gracefully stop the input thread
+            # ? maybe use timeout input or process
             # elif message == "rc":
             #     log(
             #         "stella",
