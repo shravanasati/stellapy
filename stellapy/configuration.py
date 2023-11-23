@@ -1,7 +1,12 @@
+import json
 from logging import exception
 import os
 from dataclasses import asdict, dataclass
 from io import StringIO
+from pathlib import Path
+from typing import Any
+from jsonschema import Draft6Validator, ValidationError, validate
+import pkg_resources
 
 from ruamel.yaml import YAML
 
@@ -10,6 +15,12 @@ from stellapy.walker import find_config_file
 
 # todo alter the schema URL
 YAML_SCHEMA_TEXT = "# yaml-language-server: $schema=./schema.json\n"
+
+
+def get_json_schema() -> dict[str, Any]:
+    jsonschema_path = Path(pkg_resources.resource_filename("stellapy", "schema.json")).parent.parent / "schema.json"
+    with open(jsonschema_path) as f:
+        return json.load(f)
 
 
 class ConfigFileNotFound(Exception):
@@ -120,11 +131,17 @@ class ConfigurationManager:
             self.__config = Configuration.from_yaml(fc)
 
     def load_configuration(self) -> Configuration:
-        # todo verify datatype of each attribute in Configuration
+        validate(
+            instance=asdict(self.__config),
+            schema=get_json_schema(),
+            cls=Draft6Validator,
+        )
         return self.__config
 
 
-def load_configuration_handle_errors(config_file: str | None) -> tuple[str, Configuration]:
+def load_configuration_handle_errors(
+    config_file: str | None,
+) -> tuple[str, Configuration]:
     """
     Uses the `ConfigurationManager` to attempt to load configuration, while handling all exceptions
     that are raised by the same, and alerting user.
@@ -132,6 +149,15 @@ def load_configuration_handle_errors(config_file: str | None) -> tuple[str, Conf
     Returns the config file being used as well as the `Configuration`.
     """
     config = None
+    config_manager = None
+    IMPROPER_CONFIG_HELP_TEXT = """
+    the config file is corrupted/doesn't have enough or proper parameters.
+    1. refer to the config file documentation at https://github.com/Shravan-1908/stellapy#readme
+        or
+    2. edit stella.yml file using hints given by yaml language server in the IDE of your choice
+        or
+    3. remove existing stella.yml and run `stella init`
+    """
     try:
         config_manager = ConfigurationManager(config_file)
         config = config_manager.load_configuration()
@@ -141,7 +167,13 @@ def load_configuration_handle_errors(config_file: str | None) -> tuple[str, Conf
     except TypeError:
         log(
             "error",
-            "the config file is corrupted/doesn't have enough parameters. \n 1 refer to the config file documentation at https://github.com/Shravan-1908/stellapy#readme \n or \n 2. edit stella.yml file using hints given by yaml language server in the IDE of your choice \n or \n 3. remove existing stella.yml and run `stella init`",
+            IMPROPER_CONFIG_HELP_TEXT,
+        )
+        exit(1)
+    except ValidationError as ve:
+        log(
+            "error",
+            f"{IMPROPER_CONFIG_HELP_TEXT}\n\tvalidation error: {ve}",
         )
         exit(1)
     except Exception as e:
@@ -149,7 +181,7 @@ def load_configuration_handle_errors(config_file: str | None) -> tuple[str, Conf
         exception(e)
         exit(1)
 
-    if not config:
+    if not config or not config_manager:
         log("error", "unable to load config -> this should never happen")
         exit(1)
 

@@ -36,6 +36,7 @@ classifiers = [
 	"Operating System :: MacOS :: MacOS X",
 	"Operating System :: Microsoft :: Windows",
 ]
+include = ["schema.json"]
 
 [tool.poetry.scripts]
 stella = "stellapy.stella:main"
@@ -47,6 +48,7 @@ helium = "^4.0.0"
 rich = "^13.7.0"
 ruamel-yaml = "^0.18.5"
 gitignorefile = "^1.1.2"
+jsonschema = "^4.20.0"
 
 
 [build-system]

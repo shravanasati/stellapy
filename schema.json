@@ -26,11 +26,11 @@
 					"description": "List of user-defined scripts. Similar to npm scripts."
 				},
 				"poll_interval": {
-					"type": "integer",
+					"type": "number",
 					"description": "The interval in milliseconds to check for file changes."
 				},
 				"browser_wait_interval": {
-					"type": "integer",
+					"type": "number",
 					"description": "The interval in milliseconds to wait to refresh browser window after executing command(s) on the terminal."
 				}
 			},

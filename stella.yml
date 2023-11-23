@@ -2,7 +2,7 @@
 
 browser: "firefox"
 include_only: []
-poll_interval: 500
+poll_interval: 500.2
 browser_wait_interval: 1000
 scripts:
   - name: default
