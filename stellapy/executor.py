@@ -24,9 +24,19 @@ class Executor:
     @staticmethod
     def build_command(script: Script):
         if isinstance(script.command, str):
-            return shlex.split(script.command)
+            return shlex.split(
+                f"powershell -Command {script.command}"
+                if script.shell and WINDOWS
+                else script.command
+            )
         elif isinstance(script.command, list):
-            return " && ".join(script.command)
+            # command chaining in powershell is done using ';', and '&&' on posix systems
+            chainer_sep = "; " if WINDOWS else " && "
+            joined_command = chainer_sep.join(script.command)
+            if script.shell and WINDOWS:
+                return f"powershell -Command \"{joined_command}\""
+            else:
+                return joined_command
         else:
             raise TypeError(f"invalid type of {script.command=}")
 
@@ -38,7 +48,9 @@ class Executor:
                     stdout=sys.stdout,
                     stderr=sys.stderr,
                     creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
-                    shell=self.shell
+                    shell=False,
+                    # setting shell False because we want to execute commands using pwsh,
+                    # not cmd and that is done above in build_command
                 )
             else:
                 self.__process = subprocess.Popen(
@@ -46,7 +58,7 @@ class Executor:
                     stdout=sys.stdout,
                     stderr=sys.stderr,
                     preexec_fn=os.setsid,  # type: ignore (unix based systems)
-                    shell=self.shell
+                    shell=self.shell,
                 )
         except Exception as e:
             log("error", "the app crashed, waiting for file changes to restart...")
