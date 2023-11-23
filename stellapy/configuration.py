@@ -14,11 +14,14 @@ from stellapy.logger import log
 from stellapy.walker import find_config_file
 
 # todo alter the schema URL
-YAML_SCHEMA_TEXT = "# yaml-language-server: $schema=./schema.json\n"
+YAML_SCHEMA_TEXT = "# yaml-language-server: $schema=https://raw.githubusercontent.com/Shravan-1908/stellapy/master/schema.json \n"
 
 
 def get_json_schema() -> dict[str, Any]:
-    jsonschema_path = Path(pkg_resources.resource_filename("stellapy", "schema.json")).parent.parent / "schema.json"
+    jsonschema_path = (
+        Path(pkg_resources.resource_filename("stellapy", "schema.json")).parent.parent
+        / "schema.json"
+    )
     with open(jsonschema_path) as f:
         return json.load(f)
 

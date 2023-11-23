@@ -22,15 +22,13 @@ VERSION = "0.2.0"
 def main():
     """
     stella is a command line utility made to streamline your web development experience, by
-    providing reload capabilities for both the backend as well as the frontend code.
+    providing live reload capabilities for both the backend as well as the frontend code.
 
     Visit https://github.com/Shravan-1908/stellapy for more info.
 
-    Example Usage:
-
-    $ stella run 'python3 app.py' localhost:5000
-
-    $ stella config --browser firefox
+    Example Usage:\n
+    $ stella init\n
+    $ stella run server
     """
     pass
 
@@ -47,23 +45,31 @@ def main():
 )
 def run(script: str, config_file: str | None):
     """
-    Run the server with stella. Expects two optional arguments - the command to execute or the name
-    of the script and the URL to listen at on the browser.\n
-    If no argument is provided, stella will run the script named default from the config file.
+    Run the specified script with stella. Expects one argument - the name of the script from a config
+    file. If no argument is provided, stella will run the script named `default` from the config file.
 
-    You can also pass a --config-file option pointing to the path of the config file to be used. Alternatively,
-    an environment variable named `STELLA_CONFIG` can also be set for the same.
+    You can also pass a --config-file option pointing to the path of the config file to be used.
+    Alternatively, an environment variable named `STELLA_CONFIG` can also be set for the same.
     This is generally not required since stella automatically attempts to find `stella.yml` file in the
     current directory and its parents.
 
-    Example:\n
+    Examples: \n
     $ stella run  // runs the default script from config \n
     $ stella run [script_name]  // runs the given script from config \n
-    $ stella run 'node index.js' localhost:8000  // in case you don't want to use config file
+    $ stella run [script_name] --config-file /path/to/configfile.yml
     """
     config_file_used, config = load_configuration_handle_errors(config_file)
-    r = Reloader(config, script, config_file_used)
-    r.start_server()
+    reloader = None
+    try:
+        reloader = Reloader(config, script, config_file_used)
+        reloader.start_server()
+    except KeyboardInterrupt:
+        log("info", "stopping server")
+        if reloader:
+            reloader.stop_server()
+    except Exception as e:
+        log("error", "fatal: unknown error in reloader")
+        exception(e)
 
 
 @main.command("init")

@@ -5,7 +5,7 @@ from pathlib import Path
 import gitignorefile
 
 
-def walk() -> list:
+def walk():
     """
     The `walk` function recursively searches for all files in the project returns a list of
     valid files.
@@ -14,6 +14,7 @@ def walk() -> list:
     ignore_match = (
         gitignorefile.parse(ignore_filepath) if ignore_filepath else lambda _: False
     )
+    # todo implement include-only functionality
 
     try:
         # project_files = []
@@ -81,9 +82,9 @@ def __find_file_recursively(filename: str, base_dir: str | None = None) -> str |
         return None
     try:
         _ = open(cwd / filename)
-        return cwd / filename
+        return str(cwd / filename)
     except (FileNotFoundError,):
-        return __find_file_recursively(filename, cwd.parent)
+        return __find_file_recursively(filename, str(cwd.parent))
 
 
 if __name__ == "__main__":

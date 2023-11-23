@@ -17,9 +17,14 @@ class Executor:
     """
 
     def __init__(self, script: Script) -> None:
-        self._command = self.build_command(script)
+        self.__command = self.build_command(script)
         self.shell = script.shell
-        # print(self.__command, self.shell)
+        self.command_to_display = (
+            self.__command
+            if isinstance(self.__command, str)
+            else " ".join(self.__command)
+        )
+        # print(self.__command, sel.shell)
 
     @staticmethod
     def build_command(script: Script):
@@ -29,12 +34,19 @@ class Executor:
                 if script.shell and WINDOWS
                 else script.command
             )
+        elif isinstance(script.command, list) and len(script.command) == 1:
+            # no need to chain commands in this case
+            return shlex.split(
+                f"powershell -Command {script.command[0]}"
+                if script.shell and WINDOWS
+                else script.command[0]
+            )
         elif isinstance(script.command, list):
             # command chaining in powershell is done using ';', and '&&' on posix systems
             chainer_sep = "; " if WINDOWS else " && "
             joined_command = chainer_sep.join(script.command)
             if script.shell and WINDOWS:
-                return f"powershell -Command \"{joined_command}\""
+                return f'powershell -Command "{joined_command}"'
             else:
                 return joined_command
         else:
@@ -44,7 +56,7 @@ class Executor:
         try:
             if WINDOWS:
                 self.__process = subprocess.Popen(
-                    self._command,
+                    self.__command,
                     stdout=sys.stdout,
                     stderr=sys.stderr,
                     creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
@@ -54,7 +66,7 @@ class Executor:
                 )
             else:
                 self.__process = subprocess.Popen(
-                    self._command,
+                    self.__command,
                     stdout=sys.stdout,
                     stderr=sys.stderr,
                     preexec_fn=os.setsid,  # type: ignore (unix based systems)

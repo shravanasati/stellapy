@@ -4,7 +4,7 @@
 
 [![Downloads](https://pepy.tech/badge/stellapy)](https://pepy.tech/project/stellapy)
 
-stella is a command line utility made for streamlining web development experience. It is able to reload server as well as browser on every file change.
+stella is a command line utility made for streamlining web development experience. It is able to reload server as well as the browser page on every file change.
 
 <br>
 
@@ -25,6 +25,11 @@ stella is a command line utility made for streamlining web development experienc
 
 ## ⚡️ Installation
 
+Using [pipx](https://pypa.github.io/pipx/) (recommended):
+```
+pipx install stellapy
+```
+
 On Windows:
 ```
 pip install stellapy
@@ -35,11 +40,6 @@ On Linux/MacOS:
 pip3 install stellapy
 ```
 
-Or if you're using [pipx](https://pypa.github.io/pipx/):
-```
-pipx install stellapy
-```
-
 
 <br>
 
@@ -47,13 +47,13 @@ pipx install stellapy
 
 ## 💫 Motivation
 
-I wanted a CLI that could reload the browser for static content as well as restart the server for the dynamic content. I tried to find such a tool, but didn't find one. So I made stella - that could reload backend as well as frontend code.
+I wanted a CLI that could live reload the browser page as well as live restart the server. I tried to find such a tool, but didn't find one. So I made stella - that could reload backend as well as frontend code. Also the builtin debug modes for web frameworks sucked.
 
 <br>
 
 ## ⚙️ How does stella work?
 
-stella continuously watches for file changes in the project (html, css, js, py, rb, go, rs, php, java) and whenever a change is made, it kills the existing process and spawns a new process using subprocess. What about browser reload? It uses selenium to accomplish browser reload.
+stella continuously watches for file changes in the project, while respecting the gitignore file and whenever a change is made, it kills the existing process and spawns a new process using subprocess. What about browser reload? It uses selenium to accomplish that.
 
 <br>
 
@@ -62,42 +62,46 @@ stella continuously watches for file changes in the project (html, css, js, py, 
 
 This section briefly describes how to use the stella CLI.
 
-### config
+### init
 
 ```
-stella config {options}
+stella init
 ```
 
-The `config` command is used to configure stella. The only option for *v0.1.0* is browser. When stella is ran for the first time, it automcatically configures chrome as the browser to start and perform reload actions on. However, if you want stella to use firefox, execute:
+The `init` command writes a default `stella.yml` config file in the working directory. The default configuration looks like this:
 
+```yml
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Shravan-1908/stellapy/master/schema.json 
+browser: firefox
+include_only: []
+poll_interval: 500
+browser_wait_interval: 1000
+scripts:
+- name: default
+  url: ''
+  command: echo 'hello'
+  shell: true
 ```
-stella config --browser=firefox
-```
+
+This yaml file comes with a schema
+
+<!-- todo describe config file, how stella finds it -->
+
 
 ### run
 
 ```
-stella run COMMAND URL
+stella run SCRIPT_NAME
 ```
 
 The `run` command is used to start stella.
-It expects two arguments:
+It expects one optional argument: the script name to run from the config file.
 
-1. `command` --> The shell command to execute on every file reload. Example:
-`python3 app.py`.
 
-2. `url` --> The URL to listen at the browser. Whenever a file is changed, stella will execute the shell command provided and then reload the browser. Example: `localhost:5000`.
-
-Example:
-```
-stella run "python3 app.py" localhost:5000
-```
-
-While stella is running, you can input `rs` to restart the server and reload the browser again. 
+While stella is running, you can input `rs` to restart the server and refresh the browser page manually, and `rb` only to refresh the browser page.
 
 To stop stella, input `ex`. It will close the browser as well as kill the running process gracefully.
 
-**It is strongly recommended to not to stop stella abruptly by pressing Ctrl+C. This will keep the process running in the background, which might create problems for you.**
 
 <br>
 

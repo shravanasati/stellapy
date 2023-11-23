@@ -164,7 +164,10 @@ class Reloader:
         Manual restart and exit.
         """
         while True:
-            message = input().lower().strip()
+            try:
+                message = input().lower().strip()
+            except EOFError:
+                break
             if message == "ex":
                 log("info", "stopping server")
                 self.stop_server()
@@ -246,7 +249,7 @@ class Reloader:
         browser_text = f"and listening at `{self.url}` on the browser"
         log(
             "stella",
-            f"executing `{self.executor._command if self.script else ''}` {browser_text if self.RELOAD_BROWSER else ''}",
+            f"executing `{self.executor.command_to_display if self.script else ''}` {browser_text if self.RELOAD_BROWSER else ''}",
         )
         browser_text = ", `rb` to refresh browser page"
         log(
