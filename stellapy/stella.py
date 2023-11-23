@@ -3,8 +3,10 @@ from logging import exception
 
 import click
 
-from stellapy.configuration import (ConfigFileNotFound, Configuration,
-                                    ConfigurationManager)
+from stellapy.configuration import (
+    Configuration,
+    load_configuration_handle_errors,
+)
 from stellapy.logger import log
 from stellapy.reloader import Reloader
 
@@ -43,7 +45,7 @@ def main():
     help="Path to the config file that is to be used.",
     envvar="STELLA_CONFIG",
 )
-def run(script: str, config_file: str):
+def run(script: str, config_file: str | None):
     """
     Run the server with stella. Expects two optional arguments - the command to execute or the name
     of the script and the URL to listen at on the browser.\n
@@ -59,27 +61,8 @@ def run(script: str, config_file: str):
     $ stella run [script_name]  // runs the given script from config \n
     $ stella run 'node index.js' localhost:8000  // in case you don't want to use config file
     """
-    config = None
-    try:
-        config_manager = ConfigurationManager(config_file)
-        config = config_manager.load_configuration()
-    except ConfigFileNotFound as cfe:
-        log("error", str(cfe))
-        exit(1)
-    except TypeError:
-        log(
-            "error",
-            "the config file is corrupted/doesn't have enough parameters. \n 1 refer to the config file documentation at https://github.com/Shravan-1908/stellapy#readme \n or \n 2. edit stella.yml file using hints given by yaml language server in the IDE of your choice \n or \n 3. remove existing stella.yml and run `stella init`",
-        )
-        exit(1)
-
-    if not config:
-        log("error", "unable to load config -> this should never happen")
-        exit(1)
-
-    r = Reloader(
-        config, script, config_file if config_file else str(config_manager.config_file)
-    )
+    config_file_used, config = load_configuration_handle_errors(config_file)
+    r = Reloader(config, script, config_file_used)
     r.start_server()
 
 

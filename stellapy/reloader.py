@@ -163,7 +163,6 @@ class Reloader:
         """
         Manual restart and exit.
         """
-        # todo add rc command -> it ought to refresh configuration
         while True:
             message = input().lower().strip()
             if message == "ex":
@@ -171,6 +170,7 @@ class Reloader:
                 self.stop_server()
 
             elif message == "rs":
+                # todo bug - rs results in probably sleeping
                 log("info", "restarting the server")
                 try:
                     self.executor.re_execute()
@@ -202,6 +202,23 @@ class Reloader:
                         log("error", "unable to refresh browser window")
                 else:
                     log("stella", "no browser URL is configured, can't refresh")
+
+            # ! too much black magic required to have configuration reloaded
+            # ! it's because stop_server calls os._exit and that stops the entire progam because there 
+            # ! is no way to gracefully stop the input thread
+            # elif message == "rc":
+            #     log(
+            #         "stella",
+            #         "attempting to reload configuration, stopping existing commands and browser windows",
+            #     )
+            #     self.stop_server()
+            #     cfg_file, new_config = load_configuration_handle_errors(
+            #         self.config_file
+            #     )
+            #     self.__init__(new_config, self.script.name, cfg_file)  # type: ignore
+            #     # ignore above because if self.script was None program would've already quit in __init__
+            #     self.executor.start()
+            #     self.restart()
 
     def stop_server(self):
         try:

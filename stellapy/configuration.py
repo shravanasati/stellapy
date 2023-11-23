@@ -1,9 +1,11 @@
+from logging import exception
 import os
 from dataclasses import asdict, dataclass
 from io import StringIO
 
 from ruamel.yaml import YAML
 
+from stellapy.logger import log
 from stellapy.walker import find_config_file
 
 # todo alter the schema URL
@@ -115,15 +117,47 @@ class ConfigurationManager:
         else:
             with open(self.config_file) as f:
                 fc = f.read()
-            self.config = Configuration.from_yaml(fc)
+            self.__config = Configuration.from_yaml(fc)
 
     def load_configuration(self) -> Configuration:
         # todo verify datatype of each attribute in Configuration
-        return self.config
+        return self.__config
+
+
+def load_configuration_handle_errors(config_file: str | None) -> tuple[str, Configuration]:
+    """
+    Uses the `ConfigurationManager` to attempt to load configuration, while handling all exceptions
+    that are raised by the same, and alerting user.
+
+    Returns the config file being used as well as the `Configuration`.
+    """
+    config = None
+    try:
+        config_manager = ConfigurationManager(config_file)
+        config = config_manager.load_configuration()
+    except ConfigFileNotFound as cfe:
+        log("error", str(cfe))
+        exit(1)
+    except TypeError:
+        log(
+            "error",
+            "the config file is corrupted/doesn't have enough parameters. \n 1 refer to the config file documentation at https://github.com/Shravan-1908/stellapy#readme \n or \n 2. edit stella.yml file using hints given by yaml language server in the IDE of your choice \n or \n 3. remove existing stella.yml and run `stella init`",
+        )
+        exit(1)
+    except Exception as e:
+        log("error", "fatal: an unknown error occcured")
+        exception(e)
+        exit(1)
+
+    if not config:
+        log("error", "unable to load config -> this should never happen")
+        exit(1)
+
+    return str(config_manager.config_file), config
 
 
 if __name__ == "__main__":
     # print(Configuration.from_yaml(Configuration.default().to_yaml()))
     cm = ConfigurationManager()
     print(cm.config_file)
-    print(cm.config.find_script("default"))
+    print(cm.__config.find_script("default"))

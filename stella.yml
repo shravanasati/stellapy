@@ -8,7 +8,8 @@ scripts:
   - name: default
     url: ""
     shell: true
-    command: echo 'hello world'
+    command: 
+      - emozi hello world
 
   - name: multi
     url: ""
