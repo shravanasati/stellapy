@@ -17,7 +17,7 @@ class Executor:
     """
 
     def __init__(self, script: Script) -> None:
-        self.__command = self.build_command(script)
+        self._command = self.build_command(script)
         self.shell = script.shell
         # print(self.__command, self.shell)
 
@@ -44,7 +44,7 @@ class Executor:
         try:
             if WINDOWS:
                 self.__process = subprocess.Popen(
-                    self.__command,
+                    self._command,
                     stdout=sys.stdout,
                     stderr=sys.stderr,
                     creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
@@ -54,7 +54,7 @@ class Executor:
                 )
             else:
                 self.__process = subprocess.Popen(
-                    self.__command,
+                    self._command,
                     stdout=sys.stdout,
                     stderr=sys.stderr,
                     preexec_fn=os.setsid,  # type: ignore (unix based systems)
@@ -75,8 +75,8 @@ class Executor:
             else:
                 os.killpg(os.getpgid(self.__process.pid), signal.SIGTERM)  # type: ignore
         except Exception as e:
-            log("error", "the app crashed, waiting for file changes to restart...")
             print(e)
+            log("error", "the app crashed, waiting for file changes to restart...")
 
 
 # if __name__ == "__main__":

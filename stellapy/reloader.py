@@ -246,7 +246,7 @@ class Reloader:
         browser_text = f"and listening at `{self.url}` on the browser"
         log(
             "stella",
-            f"executing `{self.script.command if self.script else ''}` {browser_text if self.RELOAD_BROWSER else ''}",
+            f"executing `{self.executor._command if self.script else ''}` {browser_text if self.RELOAD_BROWSER else ''}",
         )
         browser_text = ", `rb` to refresh browser page"
         log(
