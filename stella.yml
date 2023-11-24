@@ -1,8 +1,9 @@
-# yaml-language-server: $schema=C:\\Users\\devsh\\code\\stellapy\\schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Shravan-1908/stellapy/master/schema.json 
 
 browser: "firefox"
-include_only: []
-poll_interval: 500.2
+follow_symlinks: false
+include_only: ["*.py"]
+poll_interval: 500
 browser_wait_interval: 1000
 scripts:
   - name: default

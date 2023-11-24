@@ -1,29 +1,39 @@
 import os
 from logging import exception
 from pathlib import Path
+from typing import Iterable
 
 import gitignorefile
 
 
-def walk():
+def walk(include_only: Iterable[str] | None, follow_symlinks: bool):
     """
     The `walk` function recursively searches for all files in the project returns a list of
     valid files.
     """
-    ignore_filepath = find_ignore_file()
-    ignore_match = (
-        gitignorefile.parse(ignore_filepath) if ignore_filepath else lambda _: False
-    )
-    # todo implement include-only functionality
 
     try:
+        ignore_filepath = find_ignore_file()
+        ignore_match = (
+            gitignorefile.parse(ignore_filepath) if ignore_filepath else lambda _: False
+        )
+        include_match = (
+            gitignorefile._IgnoreRules(
+                [gitignorefile._rule_from_pattern(pattern) for pattern in include_only],
+                ".",
+            ).match
+            if include_only
+            else lambda _: True
+        )
+
         # project_files = []
         for root, _, files in os.walk(".", topdown=True):
             if ".git" in root or ignore_match(root):
                 continue
 
             for file in files:
-                yield os.path.join(root, file)
+                if include_match(file):
+                    yield os.path.join(root, file)
                 # project_files.append(os.path.join(root, file))
 
         # return project_files
@@ -91,7 +101,7 @@ if __name__ == "__main__":
     print(find_ignore_file())
     print(find_config_file())
     input()
-    for i in walk():
+    for i in walk(["*.py"], False):
         ...
         print(i)
         # input()

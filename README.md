@@ -76,6 +76,7 @@ browser: firefox
 include_only: []
 poll_interval: 500
 browser_wait_interval: 1000
+follow_symlinks: false
 scripts:
 - name: default
   url: ''
@@ -86,6 +87,7 @@ scripts:
 This yaml file comes with a schema
 
 <!-- todo describe config file, how stella finds it -->
+<!-- todo stella.ignore file -->
 
 
 ### run

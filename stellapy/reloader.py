@@ -41,13 +41,12 @@ class Reloader:
         self.poll_interval = self.config.poll_interval / 1000
         self.browser_wait_interval = self.config.browser_wait_interval / 1000
 
-    @staticmethod
-    def get_project_data() -> dict:
+    def get_project_data(self) -> dict:
         """
         Returns a dict with filenames mapped to their contents.
         """
         project_data = {}
-        for f in walk():
+        for f in walk(self.config.include_only, self.config.follow_symlinks):
             project_data.update({f: get_file_content(f)})
 
         return project_data

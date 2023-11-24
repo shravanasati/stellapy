@@ -32,6 +32,10 @@
 				"browser_wait_interval": {
 					"type": "number",
 					"description": "The interval in milliseconds to wait to refresh browser window after executing command(s) on the terminal."
+				},
+				"follow_symlinks": {
+					"type": "boolean",
+					"description": "Whether to follow symbolic links encountered in the directory tree."
 				}
 			},
 			"required": [
@@ -39,7 +43,8 @@
 				"include_only",
 				"poll_interval",
 				"browser_wait_interval",
-				"scripts"
+				"scripts",
+				"follow_symlinks"
 			],
 			"title": "Stella"
 		},
