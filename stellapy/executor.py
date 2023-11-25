@@ -17,8 +17,7 @@ class Executor:
     """
 
     def __init__(self, script: Script) -> None:
-        self.__command = self.build_command(script)
-        self.shell = script.shell
+        self.__command, self.shell = self.build_command(script)
         self.command_to_display = (
             self.__command
             if isinstance(self.__command, str)
@@ -33,22 +32,22 @@ class Executor:
                 f"powershell -Command {script.command}"
                 if script.shell and WINDOWS
                 else script.command
-            )
+            ), script.shell
         elif isinstance(script.command, list) and len(script.command) == 1:
             # no need to chain commands in this case
             return shlex.split(
                 f"powershell -Command {script.command[0]}"
                 if script.shell and WINDOWS
                 else script.command[0]
-            )
+            ), script.shell
         elif isinstance(script.command, list):
             # command chaining in powershell is done using ';', and '&&' on posix systems
             chainer_sep = "; " if WINDOWS else " && "
             joined_command = chainer_sep.join(script.command)
-            if script.shell and WINDOWS:
-                return f'powershell -Command "{joined_command}"'
+            if WINDOWS:
+                return f'powershell -Command "{joined_command}"', True
             else:
-                return joined_command
+                return joined_command, True
         else:
             raise TypeError(f"invalid type of {script.command=}")
 

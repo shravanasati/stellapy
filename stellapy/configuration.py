@@ -13,7 +13,6 @@ from ruamel.yaml import YAML
 from stellapy.logger import log
 from stellapy.walker import find_config_file
 
-# todo alter the schema URL
 YAML_SCHEMA_TEXT = "# yaml-language-server: $schema=https://raw.githubusercontent.com/Shravan-1908/stellapy/master/schema.json \n"
 
 
@@ -52,6 +51,7 @@ class Configuration:
     Represents the stella configuration.
     """
 
+    # todo set custom browser drivers for extending browser support
     browser: str
     include_only: list[str]
     poll_interval: float  # milliseconds
