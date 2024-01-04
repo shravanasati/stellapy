@@ -3,10 +3,7 @@ from logging import exception
 
 import click
 
-from stellapy.configuration import (
-    Configuration,
-    load_configuration_handle_errors,
-)
+from stellapy.configuration import Configuration, load_configuration_handle_errors
 from stellapy.logger import log
 from stellapy.reloader import Reloader
 

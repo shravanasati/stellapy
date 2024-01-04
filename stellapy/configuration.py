@@ -1,13 +1,13 @@
 import json
-from logging import exception
 import os
 from dataclasses import asdict, dataclass
 from io import StringIO
+from logging import exception
 from pathlib import Path
 from typing import Any
-from jsonschema import Draft6Validator, ValidationError, validate
-import pkg_resources
 
+import pkg_resources
+from jsonschema import Draft6Validator, ValidationError, validate
 from ruamel.yaml import YAML
 
 from stellapy.logger import log

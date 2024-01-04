@@ -4,11 +4,31 @@ import signal
 import subprocess
 import sys
 from platform import system
-from stellapy.configuration import Script
 
+from stellapy.configuration import Script
 from stellapy.logger import log
 
 WINDOWS = system() == "Windows"
+
+
+def _test_powershell() -> bool:
+    """
+    Returns `True` if powershell is available on the system.
+    """
+    dummy_stdout = open(os.devnull, "w")
+    try:
+        subprocess.run(
+            shlex.split("powershell -h"), stdout=dummy_stdout, stderr=dummy_stdout
+        )
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return False
+    finally:
+        if dummy_stdout:
+            dummy_stdout.close()
+
+
+PWSH_PRESENT = _test_powershell()
 
 
 class Executor:
@@ -27,27 +47,87 @@ class Executor:
 
     @staticmethod
     def build_command(script: Script):
+        """
+        Builds a command based on several different configurations, and returns the command and the
+        (boolean type) shell.
+
+        This is a lot of spaghetti code so here's the explanation:
+
+        1. If script.command is a str
+            a. If powershell is available and on Windows
+                i. script.shell==True
+                    return shlex splitted (powershell command) and shell as it is(=True)
+                ii. script.shell==False
+                    return shlex splitted command and shell as it is(=False)
+            b. If powershell is not available
+                whether windows(pwsh not present) or unix
+                return shlex splitted command and shell as it is
+
+        2. If script.command is a list comprising of only one item
+        Here we want DO NOT want to execute as shell (which is the default behaviour if command is a list)
+        we want to execute as case 1 only, with the caveat of script.command[0] instead of script.command
+
+        3. If script.command is a list (>1 elements)
+        We want to execute with shell=True since multiple command execution is achieved using command
+        chaining which is a shell feature.
+        We first decide the command chainer character:
+            A. pwsh -> ;
+            B. cmd.exe -> &
+            C. unix -> &&
+
+        Then the command building logic is as follows:
+            a. windows and powershell present
+                return (powershell joined) command, and True
+            b. windows and powershell NOT present
+                return joined command, and True
+            c. unix
+                return joined command, True
+
+        This is because with shell=True, python will handle cmd.exe and unix case by itself.
+        For powershell we need `powershell -Command '{joined_command}'`.
+        """
         if isinstance(script.command, str):
-            return shlex.split(
-                f"powershell -Command {script.command}"
-                if script.shell and WINDOWS
-                else script.command
-            ), script.shell
+            if PWSH_PRESENT and WINDOWS:
+                return (
+                    shlex.split(
+                        f"powershell -Command {script.command}"
+                        if script.shell
+                        else script.command
+                    ),
+                    script.shell,
+                )
+            else:
+                # in case of cmd.exe and unix
+                return (shlex.split(script.command), script.shell)
+
         elif isinstance(script.command, list) and len(script.command) == 1:
             # no need to chain commands in this case
-            return shlex.split(
-                f"powershell -Command {script.command[0]}"
-                if script.shell and WINDOWS
-                else script.command[0]
-            ), script.shell
+            if PWSH_PRESENT and WINDOWS:
+                return (
+                    shlex.split(
+                        f"powershell -Command {script.command[0]}"
+                        if script.shell and WINDOWS
+                        else script.command[0]
+                    ),
+                    script.shell,
+                )
+            else:
+                # in case of cmd.exe and unix
+                return shlex.split(script.command[0]), script.shell
+
         elif isinstance(script.command, list):
             # command chaining in powershell is done using ';', and '&&' on posix systems
             chainer_sep = "; " if WINDOWS else " && "
+            if WINDOWS and (not PWSH_PRESENT):
+                chainer_sep = " & "  # chainer for cmd.exe
             joined_command = chainer_sep.join(script.command)
-            if WINDOWS:
+            if WINDOWS and PWSH_PRESENT:
                 return f'powershell -Command "{joined_command}"', True
+            elif WINDOWS and (not PWSH_PRESENT):
+                return joined_command, True
             else:
                 return joined_command, True
+
         else:
             raise TypeError(f"invalid type of {script.command=}")
 
@@ -59,9 +139,9 @@ class Executor:
                     stdout=sys.stdout,
                     stderr=sys.stderr,
                     creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
-                    shell=False,
-                    # setting shell False because we want to execute commands using pwsh,
-                    # not cmd and that is done above in build_command
+                    shell=False if PWSH_PRESENT else True,
+                    # setting shell False if we want to execute commands using pwsh,
+                    # if pwsh not available, use cmd.exe as fallback, which is done by python
                 )
             else:
                 self.__process = subprocess.Popen(
@@ -90,11 +170,12 @@ class Executor:
             log("error", "the app crashed, waiting for file changes to restart...")
 
 
-# if __name__ == "__main__":
-#     import time
-#     e = Executor("python3 ./test.py")
-#     e.start()
-#     time.sleep(15)
-#     e.re_execute()
-#     time.sleep(15)
-#     e.close()
+if __name__ == "__main__":
+    print(_test_powershell())
+    # import time
+    # e = Executor("python3 ./test.py")
+    # e.start()
+    # time.sleep(15)
+    # e.re_execute()
+    # time.sleep(15)
+    # e.close()

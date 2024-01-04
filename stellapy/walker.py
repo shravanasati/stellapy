@@ -5,7 +5,6 @@ from typing import Iterable
 
 import gitignorefile
 
-
 IGNORE_PATTERN = None
 INCLUDE_PATTERN = None
 
