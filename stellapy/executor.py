@@ -131,7 +131,7 @@ class Executor:
                 return joined_command, True
 
         else:
-            raise TypeError(f"invalid type of {script.command=}")
+            raise TypeError(f"invalid type of {script.command=}, {type(script.command)=}")
 
     def start(self):
         try:
