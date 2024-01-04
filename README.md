@@ -104,7 +104,7 @@ Let's quickly go over the config options:
 
  - **`scripts`**: This the list of npm style scripts that take 4 parameters each.
 
-    * `name`: Name of the script. To execute a certain script, use its name in the `stella run SCRIPT_NAME` command. The script named _default_ will be used in case SCRIPT_NAME is not provided.
+    * `name`: Name of the script. To execute a certain script, use its name in the `stella run SCRIPT_NAME` command. The script named _default_ will be used in case SCRIPT_NAME is not provided. Note that this parameter is **case-insensitive**, for convenience.
 
     * `url`: The URL to listen to on the browser. Set it to an empty string (`''`) if you don't want live reload on the browser. eg. `localhost:8000`.
 
@@ -146,7 +146,7 @@ stella run SCRIPT_NAME --config-file /path/to/config/stella.yml
 ```
 
 The `run` command is used to start stella.
-It expects one optional argument: the script name to run from the config file.
+It expects one optional argument: the script name (case-insensitive) to run from the config file.
 
 An optional `--config-file` (`-c` for short) flag can be used to specify the config file to be used. 
 Alternatively, an environment variable named `STELLA_CONFIG` can be set for the same.

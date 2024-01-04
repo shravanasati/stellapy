@@ -85,6 +85,8 @@ class Executor:
 
         This is because with shell=True, python will handle cmd.exe and unix case by itself.
         For powershell we need `powershell -Command '{joined_command}'`.
+
+        4. Raise a type error because we don't identify the command type.
         """
         if isinstance(script.command, str):
             if PWSH_PRESENT and WINDOWS:
