@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/Shravan-1908/stellapy/master/schema.json 
+# yaml-language-server: $schema=https://raw.githubusercontent.com/shravanasati/stellapy/master/schema.json 
 
 browser: "firefox"
 follow_symlinks: false

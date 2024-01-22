@@ -21,7 +21,7 @@ def main():
     stella is a command line utility made to streamline your web development experience, by
     providing live reload capabilities for both the backend as well as the frontend code.
 
-    Visit https://github.com/Shravan-1908/stellapy for more info.
+    Visit https://github.com/shravanasati/stellapy for more info.
 
     Example Usage:\n
     $ stella init\n

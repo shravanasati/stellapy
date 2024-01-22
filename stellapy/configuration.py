@@ -13,7 +13,7 @@ from ruamel.yaml import YAML
 from stellapy.logger import log
 from stellapy.walker import find_config_file
 
-YAML_SCHEMA_TEXT = "# yaml-language-server: $schema=https://raw.githubusercontent.com/Shravan-1908/stellapy/master/schema.json \n"
+YAML_SCHEMA_TEXT = "# yaml-language-server: $schema=https://raw.githubusercontent.com/shravanasati/stellapy/master/schema.json \n"
 
 
 def get_json_schema() -> dict[str, Any]:
@@ -157,7 +157,7 @@ def load_configuration_handle_errors(
     config_manager = None
     IMPROPER_CONFIG_HELP_TEXT = """
     the config file is corrupted/doesn't have enough or proper parameters.
-    1. refer to the config file documentation at https://github.com/Shravan-1908/stellapy#readme
+    1. refer to the config file documentation at https://github.com/shravanasati/stellapy#readme
         or
     2. edit stella.yml file using hints given by yaml language server in the IDE of your choice
         or

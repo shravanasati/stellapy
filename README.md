@@ -73,7 +73,7 @@ stella init
 The `init` command writes a default `stella.yml` config file in the working directory. The default configuration looks like this:
 
 ```yml
-# yaml-language-server: $schema=https://raw.githubusercontent.com/Shravan-1908/stellapy/master/schema.json 
+# yaml-language-server: $schema=https://raw.githubusercontent.com/shravanasati/stellapy/master/schema.json 
 browser: firefox
 include_only: []
 poll_interval: 500

@@ -7,9 +7,9 @@ authors = ["Shravan Asati <dev.shravan@protonmail.com>"]
 license = "MIT"
 readme = "README.md"
 
-homepage = "https://github.com/Shravan-1908/stellapy"
-repository = "https://github.com/Shravan-1908/stellapy"
-documentation = "https://github.com/Shravan-1908/stellapy#readme"
+homepage = "https://github.com/shravanasati/stellapy"
+repository = "https://github.com/shravanasati/stellapy"
+documentation = "https://github.com/shravanasati/stellapy#readme"
 
 keywords = [
 	"web dev",
