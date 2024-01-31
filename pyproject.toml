@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "stellapy"
-version = "0.2.0"
+version = "0.3.0"
 description = "Streamline your web dev experience with stella - reload for the terminal as well as browser."
 
 authors = ["Shravan Asati <dev.shravan@protonmail.com>"]

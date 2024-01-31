@@ -1,7 +1,10 @@
+from dataclasses import dataclass
+from datetime import datetime, timedelta
 import os
 from logging import exception
-from threading import Thread
+from threading import Lock, Thread
 from time import sleep
+from typing import Callable, Generic, TypeVar
 
 import helium
 
@@ -9,6 +12,56 @@ from stellapy.configuration import Configuration
 from stellapy.executor import Executor
 from stellapy.logger import log
 from stellapy.walker import get_file_content, walk
+
+ActionFunc = Callable[["Trigger"], None]
+ErrorHandlerFunc = Callable[["Trigger", Exception], None]
+
+
+T = TypeVar("T")
+
+
+@dataclass(frozen=True)
+class Trigger(Generic[T]):
+    """
+    Similar to contexts in go, a trigger carries an action to perform at a certain datetime.
+    """
+
+    action: ActionFunc
+    when: datetime
+    error_handler: ErrorHandlerFunc | None
+    value: T
+
+
+class TriggerQueue:
+    """
+    A list of triggers offering some useful methods.
+    """
+
+    def __init__(self) -> None:
+        self.triggers: list[Trigger] = []
+        self.__lock = Lock()
+
+    def add(self, trigger: Trigger):
+        with self.__lock:
+            self.triggers.append(trigger)
+
+    def execute_remaining(self):
+        now = datetime.now()
+        with self.__lock:
+            for i, trigger in enumerate(self.triggers):
+                if now >= trigger.when:
+                    try:
+                        trigger.action(trigger)
+                    except Exception as e:
+                        if trigger.error_handler:
+                            trigger.error_handler(trigger, e)
+                        else:
+                            raise e
+                    self.triggers.pop(i)
+
+    def cancel_all(self):
+        with self.__lock:
+            self.triggers.clear()
 
 
 class Reloader:
@@ -37,9 +90,21 @@ class Reloader:
         self.RELOAD_BROWSER = bool(self.url)
         self.project_data = self.get_project_data()
 
+        # trigger executor
+        self._finished = False  # used by trigger thread to look for exits
+        self.trigger_queue = TriggerQueue()
+        self.trigger_thread = Thread(target=self._trigger_executor)
+
         # convert to seconds
         self.poll_interval = self.config.poll_interval / 1000
-        self.browser_wait_interval = self.config.browser_wait_interval / 1000
+        self.browser_wait_delta = timedelta(
+            seconds=self.config.browser_wait_interval / 1000
+        )
+
+    def _trigger_executor(self):
+        while not self._finished:
+            self.trigger_queue.execute_remaining()
+            sleep(0.1)
 
     def get_project_data(self) -> dict:
         """
@@ -89,14 +154,14 @@ class Reloader:
                         "error",
                         "chrome binary not found. either install chrome browser or configure stella browser to firefox.",
                     )
-                    self.stop_server()
+                    self.stop()
 
                 elif "Reached error page" in str(e):
                     log("error", "app crashed, waiting for file changes to restart...")
 
                 else:
                     log("error", f"an unknown error occurred: \n{e}")
-                    self.stop_server()
+                    self.stop()
 
         elif browser == "firefox":
             try:
@@ -107,50 +172,63 @@ class Reloader:
                         "error",
                         "firefox binary not found. either install chrome browser or configure stella to use firefox.",
                     )
-                    self.stop_server()
+                    self.stop()
 
                 elif "Message: Reached error page" in str(e):
                     log("error", "app crashed, waiting for file changes to restart...")
 
                 else:
                     log("error", f"an unknown error occurred: \n{e}")
-                    self.stop_server()
+                    self.stop()
 
         else:
             log(
                 "error",
                 f"invalid browser specified: {browser}. stella supports only chrome and firefox. execute `stella config --browser chrome|firefox` for configuring the browser.",
             )
-            self.stop_server()
+            self.stop()
+
+    def _browser_reloader(self, _: Trigger):
+        """
+        A helper function used in browser reload triggers.
+        """
+        if self.RELOAD_BROWSER:
+            helium.refresh()
+
+    def _browser_reload_error_handler(self, t: Trigger, e: Exception):
+        log(
+            "error",
+            f"browser reload didnt work, retrying in {2 * t.value} seconds...",
+        )
+        self.trigger_queue.add(
+            Trigger(
+                action=t.action,
+                when=datetime.now() + 2 * t.value,
+                error_handler=self._browser_reload_error_handler,
+                value=2 * t.value,
+            )
+        )
 
     def _restart(self):
-        try:
-            if self.detect_change():
-                log(
-                    "info",
-                    "detected changes in the project, reloading server and browser",
-                )
-                self.executor.re_execute()
-                sleep(self.browser_wait_interval)
-                if self.RELOAD_BROWSER:
-                    helium.refresh()
+        if self.detect_change():
+            log(
+                "info",
+                "detected changes in the project, reloading server and browser",
+            )
+            # cancel all prev triggers, because we got a new change
+            self.trigger_queue.cancel_all()
+            self.executor.re_execute()
+            self.trigger_queue.add(
+                Trigger(
+                    action=self._browser_reloader,
+                    when=datetime.now() + self.browser_wait_delta,
+                    error_handler=self._browser_reload_error_handler,
+                    value=self.browser_wait_delta,
+                ),
+            )
 
-            else:
-                sleep(self.poll_interval)
-        except Exception:
-            try:
-                log(
-                    "error",
-                    f"browser reload didnt work, retrying in {2 * self.browser_wait_interval} seconds...",
-                )
-                sleep(2 * self.config.browser_wait_interval)
-                if self.RELOAD_BROWSER:
-                    helium.refresh()
-            except Exception:
-                log(
-                    "error",
-                    "browser reload retry failed! make sure you've provided stella the correct url to listen at. waiting for file changes or `rb`/`rs` input to restart...",
-                )
+        else:
+            sleep(self.poll_interval)
 
     def restart(self) -> None:
         if self.RELOAD_BROWSER:
@@ -169,30 +247,20 @@ class Reloader:
                 break
             if message == "ex":
                 log("info", "stopping server")
-                self.stop_server()
+                self.stop()
 
             elif message == "rs":
                 log("info", "restarting the server")
-                try:
-                    self.executor.re_execute()
-                    if self.RELOAD_BROWSER:
-                        sleep(self.browser_wait_interval)
-                        helium.refresh()
-
-                except Exception:
-                    try:
-                        log(
-                            "error",
-                            f"browser reload didnt work, retrying in {2 * self.browser_wait_interval} seconds...",
-                        )
-                        sleep(2 * self.browser_wait_interval)
-                        if self.RELOAD_BROWSER:
-                            helium.refresh()
-                    except Exception:
-                        log(
-                            "error",
-                            "browser reload retry failed! make sure you've provided stella the correct url to listen at. waiting for file changes or `rb`/`rs` input to restart...",
-                        )
+                self.trigger_queue.cancel_all()
+                self.executor.re_execute()
+                self.trigger_queue.add(
+                    Trigger(
+                        action=self._browser_reloader,
+                        when=datetime.now() + self.browser_wait_delta,
+                        error_handler=self._browser_reload_error_handler,
+                        value=self.browser_wait_delta,
+                    )
+                )
 
             elif message == "rb":
                 if self.RELOAD_BROWSER:
@@ -222,7 +290,7 @@ class Reloader:
             #     self.executor.start()
             #     self.restart()
 
-    def stop_server(self):
+    def stop(self):
         try:
             self.executor.close()
             if self.RELOAD_BROWSER:
@@ -236,7 +304,7 @@ class Reloader:
         finally:
             os._exit(0)
 
-    def start_server(self) -> None:
+    def start(self) -> None:
         """
         Starts the server. All reloading and stuff is done here.
         """

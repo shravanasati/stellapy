@@ -8,7 +8,7 @@ from stellapy.logger import log
 from stellapy.reloader import Reloader
 
 NAME = "stella"
-VERSION = "0.2.0"
+VERSION = "0.3.0"
 
 # , help = "The url to listen to on the browser. Example: localhost:5000", prompt = "Enter the URL to listen to on the browser"
 # , help = "The command to execute on a file change. Example: python3 app.py", prompt = "Enter the command to execute on a file change"
@@ -59,11 +59,11 @@ def run(script: str, config_file: str | None):
     reloader = None
     try:
         reloader = Reloader(config, script, config_file_used)
-        reloader.start_server()
+        reloader.start()
     except KeyboardInterrupt:
         log("info", "stopping server")
         if reloader:
-            reloader.stop_server()
+            reloader.stop()
     except Exception as e:
         log("error", "fatal: unknown error in reloader")
         exception(e)
