@@ -4,7 +4,7 @@ import os
 from logging import exception
 from threading import Lock, Thread
 from time import sleep
-from typing import Callable, Generic, TypeVar
+from typing import Any, Callable, Generic, TypeVar
 
 import helium
 
@@ -13,17 +13,16 @@ from stellapy.executor import Executor
 from stellapy.logger import log
 from stellapy.walker import get_file_content, walk
 
-ActionFunc = Callable[["Trigger"], None]
-ErrorHandlerFunc = Callable[["Trigger", Exception], None]
-
 
 T = TypeVar("T")
+ActionFunc = Callable[["Trigger"], None]
+ErrorHandlerFunc = Callable[["Trigger", Exception], None]
 
 
 @dataclass(frozen=True)
 class Trigger(Generic[T]):
     """
-    Similar to contexts in go, a trigger carries an action to perform at a certain datetime.
+    Similar to contexts in go, a trigger carries an action to perform at a certain datetime, along with an error handler and a value.
     """
 
     action: ActionFunc
@@ -34,18 +33,25 @@ class Trigger(Generic[T]):
 
 class TriggerQueue:
     """
-    A list of triggers offering some useful methods.
+    A list of triggers offering some useful and thread-safe methods.
+    The type variable `T` is used for the value of Trigger.
     """
 
     def __init__(self) -> None:
-        self.triggers: list[Trigger] = []
+        self.triggers: list[Trigger[Any]] = []
         self.__lock = Lock()
 
-    def add(self, trigger: Trigger):
+    def add(self, trigger: Trigger[Any]):
+        """
+        Add a trigger to the queue.
+        """
         with self.__lock:
             self.triggers.append(trigger)
 
     def execute_remaining(self):
+        """
+        Executes all the triggers that need to be executed, i.e., whose deadline has been reached.
+        """
         now = datetime.now()
         with self.__lock:
             for i, trigger in enumerate(self.triggers):
@@ -60,6 +66,9 @@ class TriggerQueue:
                     self.triggers.pop(i)
 
     def cancel_all(self):
+        """
+        Cancel all the triggers.
+        """
         with self.__lock:
             self.triggers.clear()
 
@@ -94,6 +103,7 @@ class Reloader:
         self._finished = False  # used by trigger thread to look for exits
         self.trigger_queue = TriggerQueue()
         self.trigger_thread = Thread(target=self._trigger_executor)
+        self.trigger_thread.start()
 
         # convert to seconds
         self.poll_interval = self.config.poll_interval / 1000
@@ -102,6 +112,10 @@ class Reloader:
         )
 
     def _trigger_executor(self):
+        """
+        Executes all the remaining triggers in the trigger queue until self._finished
+        is set to `True`.
+        """
         while not self._finished:
             self.trigger_queue.execute_remaining()
             sleep(0.1)
@@ -188,17 +202,17 @@ class Reloader:
             )
             self.stop()
 
-    def _browser_reloader(self, _: Trigger):
+    def _browser_reloader(self, _: Trigger[timedelta]):
         """
         A helper function used in browser reload triggers.
         """
         if self.RELOAD_BROWSER:
             helium.refresh()
 
-    def _browser_reload_error_handler(self, t: Trigger, e: Exception):
+    def _browser_reload_error_handler(self, t: Trigger[timedelta], e: Exception):
         log(
             "error",
-            f"browser reload didnt work, retrying in {2 * t.value} seconds...",
+            f"browser reload didnt work, retrying in {2 * t.value.microseconds / 10e6} seconds...",
         )
         self.trigger_queue.add(
             Trigger(
@@ -219,7 +233,7 @@ class Reloader:
             self.trigger_queue.cancel_all()
             self.executor.re_execute()
             self.trigger_queue.add(
-                Trigger(
+                Trigger[timedelta](
                     action=self._browser_reloader,
                     when=datetime.now() + self.browser_wait_delta,
                     error_handler=self._browser_reload_error_handler,
@@ -302,6 +316,7 @@ class Reloader:
             )
             exception(e)
         finally:
+            self._finished = True
             os._exit(0)
 
     def start(self) -> None:
