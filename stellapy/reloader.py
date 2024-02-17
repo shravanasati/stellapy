@@ -143,7 +143,7 @@ class Reloader:
                     "error",
                     f"browser reload didnt work, retrying in {2 * self.browser_wait_interval} seconds...",
                 )
-                sleep(2 * self.config.browser_wait_interval)
+                sleep(2 * self.browser_wait_interval)
                 if self.RELOAD_BROWSER:
                     helium.refresh()
             except Exception:
