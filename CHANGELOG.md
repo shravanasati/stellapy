@@ -13,3 +13,7 @@
 - Remove config command
 - Executor is more capable - executing multiple commands
 - Fix minor bugs
+
+
+## v0.2.1
+- Fix a bug which caused stella to sleep for a long duration if an error occured in the firefox browser

@@ -16,7 +16,6 @@ Although you can use it like any other live reload tool - with builtin `.gitigno
 - [Motivation](#-motivation)
 - [How does stella work?](#%EF%B8%8F-how-does-stella-work)
 - [Usage](#-usage)
-- [Changelog](#-changelog)
 - [Versioning](#-versioning)
 - [Licensing](#-licensing)
 - [Contribution](#-contribution)
