@@ -155,7 +155,7 @@ If not provided, stella will attempt to find `stella.yml` in the current directo
 
 While stella is running, you can input `rs` to restart the server and refresh the browser page manually, and `rb` only to refresh the browser page.
 
-To stop stella, input `ex`. It will close the browser as well as kill the running process gracefully.
+To stop stella, input `ex`. It will close the browser as well as kill the running process gracefully (it send `SIGTERM` on Unix based systems and `CTRL_BREAK_EVENT` on Windows).
 
 <br>
 
