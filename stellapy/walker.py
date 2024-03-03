@@ -34,6 +34,7 @@ def get_ignore_include_patterns(include_only: Iterable[str] | None):
     return IGNORE_PATTERN, INCLUDE_PATTERN
 
 
+# todo use watchdog to track filesystem changes instead of polling
 def walk(include_only: Iterable[str] | None, follow_symlinks: bool):
     """
     The `walk` function recursively searches for all files in the project returns a list of

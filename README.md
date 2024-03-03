@@ -6,7 +6,7 @@
 
 stella is a command line utility made for streamlining web development experience. 
 It is able to reload server as well as the browser page on every file change.
-Although you can use it like any other live reload tool - with builtin `.gitignore` detection and following, along with several other features like multiple command execution, and the npm-scripts like interface.
+You can use it like any other live reload tool too - with builtin `.gitignore` detection and obedience, along with several other features like multiple command execution, and the npm-scripts like interface.
 
 <br>
 
@@ -48,7 +48,7 @@ pip3 install stellapy
 
 ## 💫 Motivation
 
-I wanted a CLI that could live reload the browser page as well as live restart the server. I tried to find such a tool, but didn't find one. So I made stella - that could reload backend as well as frontend code. Also the builtin debug modes of web frameworks sucked.
+I wanted a CLI that could live reload the browser page as well as live restart the server. I tried to find such a tool, but didn't find one. So I made stella - that could reload backend as well as frontend code. Also the builtin "debug modes" of web frameworks sucked.
 
 <br>
 
@@ -155,7 +155,7 @@ If not provided, stella will attempt to find `stella.yml` in the current directo
 
 While stella is running, you can input `rs` to restart the server and refresh the browser page manually, and `rb` only to refresh the browser page.
 
-To stop stella, input `ex`. It will close the browser as well as kill the running process gracefully (it send `SIGTERM` on Unix based systems and `CTRL_BREAK_EVENT` on Windows).
+To stop stella, input `ex`. It will close the browser as well as kill the running process gracefully (it sends `SIGTERM` on Unix based systems and `CTRL_BREAK_EVENT` on Windows).
 
 <br>
 
