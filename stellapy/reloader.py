@@ -30,6 +30,9 @@ class Trigger(Generic[T]):
     error_handler: ErrorHandlerFunc | None
     value: T
 
+    def __repr__(self) -> str:
+        return f"Trigger <action={self.action} when={self.when} error_handler={self.error_handler} value={self.value}>"
+
 
 class TriggerQueue:
     """
@@ -54,16 +57,19 @@ class TriggerQueue:
         """
         now = datetime.now()
         with self.__lock:
-            for i, trigger in enumerate(self.triggers):
-                if now >= trigger.when:
-                    try:
-                        trigger.action(trigger)
-                    except Exception as e:
-                        if trigger.error_handler:
-                            trigger.error_handler(trigger, e)
-                        else:
-                            raise e
-                    self.triggers.pop(i)
+            # store all ready triggers in a temp list
+            to_execute = [t for t in self.triggers if now >= t.when]
+            self.triggers = [t for t in self.triggers if t not in to_execute]
+
+        for trigger in to_execute:
+            print(trigger)
+            try:
+                trigger.action(trigger)
+            except Exception as e:
+                if trigger.error_handler:
+                    trigger.error_handler(trigger, e)
+                else:
+                    raise e
 
     def cancel_all(self):
         """
@@ -108,12 +114,12 @@ class Reloader:
         # convert to seconds
         self.poll_interval = self.config.poll_interval / 1000
         self.browser_wait_delta = timedelta(
-            seconds=self.config.browser_wait_interval / 1000
+            milliseconds=self.config.browser_wait_interval
         )
 
     def _trigger_executor(self):
         """
-        Executes all the remaining triggers in the trigger queue until self._finished
+        Executes all the remaining triggers in the trigger queue until `self._finished`
         is set to `True`.
         """
         while not self._finished:
@@ -202,17 +208,28 @@ class Reloader:
             )
             self.stop()
 
-    def _browser_reloader(self, _: Trigger[timedelta]):
+    @staticmethod
+    def _browser_reloader(_: Trigger[timedelta]):
         """
         A helper function used in browser reload triggers.
         """
-        if self.RELOAD_BROWSER:
-            helium.refresh()
+        helium.refresh()
+
+    @staticmethod
+    def _displayable_seconds_from_timedelta(t: timedelta):
+        """
+        Helper function to return seconds from a timedelta object, because if t.seconds < 1,
+        then t.seconds is zero for a timedelta object.
+        """
+        if t.seconds > 0:
+            return t.seconds
+        else:
+            return (t.microseconds) / 10e6
 
     def _browser_reload_error_handler(self, t: Trigger[timedelta], e: Exception):
         log(
             "error",
-            f"browser reload didnt work, retrying in {2 * t.value.microseconds / 10e6} seconds...",
+            f"browser reload didnt work, retrying in {self._displayable_seconds_from_timedelta(2*t.value)} seconds...",
         )
         self.trigger_queue.add(
             Trigger(
@@ -232,14 +249,15 @@ class Reloader:
             # cancel all prev triggers, because we got a new change
             self.trigger_queue.cancel_all()
             self.executor.re_execute()
-            self.trigger_queue.add(
-                Trigger[timedelta](
-                    action=self._browser_reloader,
-                    when=datetime.now() + self.browser_wait_delta,
-                    error_handler=self._browser_reload_error_handler,
-                    value=self.browser_wait_delta,
-                ),
-            )
+            if self.RELOAD_BROWSER:
+                self.trigger_queue.add(
+                    Trigger[timedelta](
+                        action=self._browser_reloader,
+                        when=datetime.now() + self.browser_wait_delta,
+                        error_handler=self._browser_reload_error_handler,
+                        value=self.browser_wait_delta,
+                    ),
+                )
 
         else:
             sleep(self.poll_interval)
@@ -267,14 +285,15 @@ class Reloader:
                 log("info", "restarting the server")
                 self.trigger_queue.cancel_all()
                 self.executor.re_execute()
-                self.trigger_queue.add(
-                    Trigger(
-                        action=self._browser_reloader,
-                        when=datetime.now() + self.browser_wait_delta,
-                        error_handler=self._browser_reload_error_handler,
-                        value=self.browser_wait_delta,
+                if self.RELOAD_BROWSER:
+                    self.trigger_queue.add(
+                        Trigger(
+                            action=self._browser_reloader,
+                            when=datetime.now() + self.browser_wait_delta,
+                            error_handler=self._browser_reload_error_handler,
+                            value=self.browser_wait_delta,
+                        )
                     )
-                )
 
             elif message == "rb":
                 if self.RELOAD_BROWSER:

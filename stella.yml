@@ -16,7 +16,7 @@ scripts:
     url: ""
     shell: true
     command:
-      - bench --help
+      - atomic --help
       - ls
       - pwd
 
