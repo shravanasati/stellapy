@@ -62,7 +62,6 @@ class TriggerQueue:
             self.triggers = [t for t in self.triggers if t not in to_execute]
 
         for trigger in to_execute:
-            print(trigger)
             try:
                 trigger.action(trigger)
             except Exception as e:
