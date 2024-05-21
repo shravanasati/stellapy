@@ -33,7 +33,7 @@ PWSH_PRESENT = _test_powershell()
 
 class Executor:
     """
-    base class for executing sys calls.
+    base class for executing processes.
     """
 
     def __init__(self, script: Script) -> None:

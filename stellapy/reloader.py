@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-import os
 from logging import exception
 from threading import Lock, Thread
 from time import sleep
@@ -106,6 +105,7 @@ class Reloader:
 
         # trigger executor
         self._finished = False  # used by trigger thread to look for exits
+        self.trigger_execution_interval = 0.1  # seconds
         self.trigger_queue = TriggerQueue()
         self.trigger_thread = Thread(target=self._trigger_executor)
         self.trigger_thread.start()
@@ -123,7 +123,7 @@ class Reloader:
         """
         while not self._finished:
             self.trigger_queue.execute_remaining()
-            sleep(0.1)
+            sleep(self.trigger_execution_interval)
 
     def get_project_data(self) -> dict:
         """
@@ -158,7 +158,7 @@ class Reloader:
         except Exception as e:
             print("FATAL ERROR: This should never happen.")
             exception(e)
-            os._exit(1)
+            self.stop()
 
         return False
 
@@ -264,14 +264,14 @@ class Reloader:
     def restart(self) -> None:
         if self.RELOAD_BROWSER:
             self.start_browser()
-        while True:
+        while not self._finished:
             self._restart()
 
     def manual_input(self) -> None:
         """
         Manual restart and exit.
         """
-        while True:
+        while not self._finished:
             try:
                 message = input().lower().strip()
             except EOFError:
@@ -302,7 +302,7 @@ class Reloader:
                     except Exception:
                         log("error", "unable to refresh browser window")
                 else:
-                    log("stella", "no browser URL is configured, can't refresh")
+                    log("stella", "no browser URL is configured, can't refresh browser window")
 
             # ! too much black magic required to have configuration reloaded
             # ! it's because stop_server calls os._exit and that stops the entire progam because there
@@ -335,7 +335,6 @@ class Reloader:
             exception(e)
         finally:
             self._finished = True
-            os._exit(0)
 
     def start(self) -> None:
         """
@@ -356,7 +355,9 @@ class Reloader:
             "stella",
             f"input `rs` to manually restart the server{browser_text if self.RELOAD_BROWSER else ''} & `ex` to stop the server",
         )
-        input_thread = Thread(target=self.manual_input)
+        # running the input thread as daemon would allow the program
+        #  to exit even if the input thread is still running
+        input_thread = Thread(target=self.manual_input, daemon=True)
         input_thread.start()
         self.executor.start()
         self.restart()

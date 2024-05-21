@@ -53,7 +53,7 @@ def run(script: str, config_file: str | None):
     Examples: \n
     $ stella run  // runs the default script from config \n
     $ stella run [script_name]  // runs the given script from config \n
-    $ stella run [script_name] --config-file /path/to/configfile.yml
+    $ stella run [script_name] --config-file /path/to/stella.yml
     """
     config_file_used, config = load_configuration_handle_errors(config_file)
     reloader = None
@@ -91,7 +91,7 @@ def init():
     except PermissionError:
         log(
             "error",
-            "unable to write stella.yml file in the current directory: not enough persmissions",
+            "unable to write stella.yml file in the current directory: not enough permissions",
         )
 
     except Exception as e:
