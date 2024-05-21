@@ -1,20 +1,12 @@
-import os
-from logging import exception
+from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Iterable
+from typing import Callable, Iterable
 
 import gitignorefile
-
-IGNORE_PATTERN = None
-INCLUDE_PATTERN = None
+from watchdog.events import FileSystemEvent, FileSystemEventHandler, EVENT_TYPE_CLOSED, EVENT_TYPE_OPENED
 
 
 def get_ignore_include_patterns(include_only: Iterable[str] | None):
-    global IGNORE_PATTERN, INCLUDE_PATTERN
-    if IGNORE_PATTERN and INCLUDE_PATTERN:
-        # if they are already cached
-        return IGNORE_PATTERN, INCLUDE_PATTERN
-
     ignore_filepath = find_ignore_file()
     ignore_match = (
         gitignorefile.parse(ignore_filepath) if ignore_filepath else lambda _: False
@@ -28,57 +20,37 @@ def get_ignore_include_patterns(include_only: Iterable[str] | None):
         else lambda _: True
     )
 
-    # compute patterns once and cache them
-    IGNORE_PATTERN = ignore_match
-    INCLUDE_PATTERN = include_match
-    return IGNORE_PATTERN, INCLUDE_PATTERN
+    return ignore_match, include_match
 
 
-# todo use watchdog to track filesystem changes instead of polling
-def walk(include_only: Iterable[str] | None, follow_symlinks: bool):
+class PatternMatchingEventHandler(FileSystemEventHandler):
     """
-    The `walk` function recursively searches for all files in the project returns a list of
-    valid files.
+    Subclass of `watchdog.FileSystemEventHandler` which implements gitignore-style
+    pattern matching.
     """
+    def __init__(self, include_only: Iterable[str] | None, callback: Callable[[], None]) -> None:
+        super().__init__()
+        self.ignore_match, self.include_match = get_ignore_include_patterns(include_only)
+        self.callback_fn = callback
+        self.last_event_time = datetime.now()
 
-    try:
-        ignore_match, include_match = get_ignore_include_patterns(include_only)
-        # project_files = []
-        for root, _, files in os.walk(".", topdown=True, followlinks=follow_symlinks):
-            if ".git" in root or ignore_match(root):
-                continue
+    def on_any_event(self, event: FileSystemEvent) -> None:
+        # only respond to events after a certain threshold
+        if datetime.now() - self.last_event_time > timedelta(milliseconds=500):
+            super().on_any_event(event)
+            self.callback_fn()
+            self.last_event_time = datetime.now()
 
-            for file in files:
-                if ignore_match(root):
-                    continue
-                if include_match(file):
-                    yield os.path.join(root, file)
-                # project_files.append(os.path.join(root, file))
-
-        # return project_files
-
-    except Exception as e:
-        exception(e)
-        return []
-
-
-def get_file_content(filepath: str) -> str:
-    """
-    `get_file_content` returns the content of the file. Ignores binary files.
-    """
-    try:
-        with open(filepath, encoding="utf-8") as f:
-            fc = f.read()
-
-        return fc
-
-    except UnicodeDecodeError:
-        # binary file, ignore
-        return ""
-
-    except Exception as e:
-        exception(e)
-        return ""
+    def dispatch(self, event: FileSystemEvent) -> None:
+        no_dispatch_conditions = {
+            self.ignore_match(event.src_path),
+            ".git" in event.src_path,
+            event.event_type in (EVENT_TYPE_OPENED, EVENT_TYPE_CLOSED),
+            not self.include_match(event.src_path)
+        }
+        if any(no_dispatch_conditions):
+            return
+        return super().dispatch(event)
 
 
 def find_ignore_file(base_dir: str | None = None) -> str | None:
@@ -120,9 +92,9 @@ if __name__ == "__main__":
     print(find_ignore_file())
     print(find_config_file())
     input()
-    for i in walk(["*.py"], False):
-        ...
-        print(i)
-        # input()
-        # print(get_file_content(i))
-        # input()
+    # for i in walk(["*.py"], False):
+    #     ...
+    #     print(i)
+    #     input()
+    #     print(get_file_content(i))
+    #     input()

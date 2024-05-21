@@ -49,6 +49,7 @@ rich = "^13.7.0"
 ruamel-yaml = "^0.18.5"
 gitignorefile = "^1.1.2"
 jsonschema = "^4.20.0"
+watchdog = "^4.0.0"
 
 
 [build-system]

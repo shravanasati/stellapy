@@ -6,12 +6,12 @@ from time import sleep
 from typing import Any, Callable, Generic, TypeVar
 
 import helium
+from watchdog.observers import Observer
 
 from stellapy.configuration import Configuration
 from stellapy.executor import Executor
 from stellapy.logger import log
-from stellapy.walker import get_file_content, walk
-
+from stellapy.walker import PatternMatchingEventHandler
 
 T = TypeVar("T")
 ActionFunc = Callable[["Trigger"], None]
@@ -101,7 +101,14 @@ class Reloader:
         self.executor = Executor(self.script)
         self.url = self.script.url
         self.RELOAD_BROWSER = bool(self.url)
-        self.project_data = self.get_project_data()
+
+        # watchdog observer
+        self.observer = Observer()
+        self.observer.schedule(
+            PatternMatchingEventHandler(self.config.include_only, self._restart),
+            ".",
+            recursive=True,
+        )
 
         # trigger executor
         self._finished = False  # used by trigger thread to look for exits
@@ -124,43 +131,6 @@ class Reloader:
         while not self._finished:
             self.trigger_queue.execute_remaining()
             sleep(self.trigger_execution_interval)
-
-    def get_project_data(self) -> dict:
-        """
-        Returns a dict with filenames mapped to their contents.
-        """
-        project_data = {}
-        for f in walk(self.config.include_only, self.config.follow_symlinks):
-            project_data.update({f: get_file_content(f)})
-
-        return project_data
-
-    def detect_change(self) -> bool:
-        """
-        Detects if a change has been done to the project. Also updates the project data if
-        new a change is detected.
-        """
-        new_content = self.get_project_data()
-        if len(self.project_data.keys()) != len(new_content.keys()):
-            self.project_data = new_content
-            return True
-
-        try:
-            for k, v in self.project_data.items():
-                if new_content[k] != v:
-                    self.project_data = new_content
-                    return True
-
-        except KeyError:
-            self.project_data = new_content
-            return True
-
-        except Exception as e:
-            print("FATAL ERROR: This should never happen.")
-            exception(e)
-            self.stop()
-
-        return False
 
     def start_browser(self):
         browser = self.config.browser
@@ -240,32 +210,28 @@ class Reloader:
         )
 
     def _restart(self):
-        if self.detect_change():
-            log(
-                "info",
-                "detected changes in the project, reloading server and browser",
-            )
-            # cancel all prev triggers, because we got a new change
-            self.trigger_queue.cancel_all()
-            self.executor.re_execute()
-            if self.RELOAD_BROWSER:
-                self.trigger_queue.add(
-                    Trigger[timedelta](
-                        action=self._browser_reloader,
-                        when=datetime.now() + self.browser_wait_delta,
-                        error_handler=self._browser_reload_error_handler,
-                        value=self.browser_wait_delta,
-                    ),
-                )
-
-        else:
-            sleep(self.poll_interval)
-
-    def restart(self) -> None:
+        log(
+            "info",
+            "detected changes in the project, reloading server and browser",
+        )
+        # cancel all prev triggers, because we got a new change
+        self.trigger_queue.cancel_all()
+        self.executor.re_execute()
         if self.RELOAD_BROWSER:
-            self.start_browser()
-        while not self._finished:
-            self._restart()
+            self.trigger_queue.add(
+                Trigger[timedelta](
+                    action=self._browser_reloader,
+                    when=datetime.now() + self.browser_wait_delta,
+                    error_handler=self._browser_reload_error_handler,
+                    value=self.browser_wait_delta,
+                ),
+            )
+
+    # def restart(self) -> None:
+    #     if self.RELOAD_BROWSER:
+    #         self.start_browser()
+    #     while not self._finished:
+    #         self._restart()
 
     def manual_input(self) -> None:
         """
@@ -276,6 +242,7 @@ class Reloader:
                 message = input().lower().strip()
             except EOFError:
                 break
+
             if message == "ex":
                 log("info", "stopping server")
                 self.stop()
@@ -302,7 +269,10 @@ class Reloader:
                     except Exception:
                         log("error", "unable to refresh browser window")
                 else:
-                    log("stella", "no browser URL is configured, can't refresh browser window")
+                    log(
+                        "stella",
+                        "no browser URL is configured, can't refresh browser window",
+                    )
 
             # ! too much black magic required to have configuration reloaded
             # ! it's because stop_server calls os._exit and that stops the entire progam because there
@@ -335,6 +305,8 @@ class Reloader:
             exception(e)
         finally:
             self._finished = True
+            self.observer.stop()
+            self.observer.join()
 
     def start(self) -> None:
         """
@@ -360,4 +332,8 @@ class Reloader:
         input_thread = Thread(target=self.manual_input, daemon=True)
         input_thread.start()
         self.executor.start()
-        self.restart()
+        if self.RELOAD_BROWSER:
+            self.start_browser()
+
+        self.observer.start()
+        # self.restart()
