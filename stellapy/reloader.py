@@ -6,6 +6,8 @@ from time import sleep
 from typing import Any, Callable, Generic, TypeVar
 
 from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.common.exceptions import NoSuchElementException
 from watchdog.observers import Observer
 
 from stellapy.configuration import Configuration
@@ -134,7 +136,7 @@ class Reloader:
             self.trigger_queue.execute_remaining()
             sleep(self.trigger_execution_interval)
 
-    def start_browser(self):
+    def _start_browser(self):
         # selenium driver
         if self.config.browser not in ("firefox", "chrome", "safari", "edge"):
             # this should never happen because of configuration validation
@@ -154,8 +156,8 @@ class Reloader:
 
         try:
             # todo handle selenium manager exception
-            # todo edit schema.json
             self.driver.get(self.url)
+
         except Exception as e:
             if "Message: unknown error: cannot find Chrome binary" in str(e):
                 log(
@@ -176,6 +178,20 @@ class Reloader:
         A helper function used in browser reload triggers.
         """
         self.driver.refresh()
+        # firefox throws an error via selenium if the refresh wasn't successfull
+        # chrome and edge don't, so we can't call the error handler function (exponential backoff)
+        # even if the page wasn't loaded
+        # thus, check if the body tag has `neterror` class because it's always present
+        # when any browser(again, not tested for safari) shows the error page
+        # not sure how safari behaves, so we'll check for it too
+        if self.config.browser != "firefox":
+            try:
+                el = self.driver.find_element(By.CLASS_NAME, "neterror")
+            except NoSuchElementException:
+                return
+            else:
+                if el.tag_name == "body":
+                    raise Exception("failed to load page")
 
     @staticmethod
     def _displayable_seconds_from_timedelta(t: timedelta):
@@ -327,7 +343,7 @@ class Reloader:
         input_thread.start()
         self.executor.start()
         if self.RELOAD_BROWSER:
-            self.start_browser()
+            self._start_browser()
 
         self.observer.start()
         # self.restart()

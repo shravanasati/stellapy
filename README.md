@@ -91,21 +91,23 @@ This yaml file comes with a schema which can be utilized by yaml language server
 
 Let's quickly go over the config options:
 
- - **`browser`**: This option specifies the browser to use when `url` is given. The only valid options for browser currently are `firefox` and `chrome`.
+ - **`browser`**: This option specifies the browser to use when `url` is given. The only valid options for browser currently are `firefox`, `chrome`, `edge` and `safari`.
 
  - **`include_only`**: The list of gitignore-style patterns to consider for live reload. This will be used along with the ignore file (`stella.ignore` or `.gitignore`) to match files. eg. `include_only: ["*.py", "*.env"]`.
 
- - **`poll_interval`**: The duration in **milliseconds** to poll the filesystem for changes.
+ - **`poll_interval`**: The duration in **milliseconds** to poll the filesystem for changes. This has been modified past v0.3.0 - it now signifies the threshold duration for which stella should accept changes.
 
  - **`browser_wait_interval`**: This is the duration in **milliseconds** between the execution of given command on the terminal and browser page refresh. This can be used in situations when the server takes some time before it is ready to listen on a given port.
 
- - **`follow_symlinks`**: Boolean value that indicates whether to follow symbolic links encountered in the filesystem.
+ <!-- - **`follow_symlinks`**: Boolean value that indicates whether to follow symbolic links encountered in the filesystem. -->
 
  - **`scripts`**: This the list of npm style scripts that take 4 parameters each.
 
     * `name`: Name of the script. To execute a certain script, use its name in the `stella run SCRIPT_NAME` command. The script named _default_ will be used in case SCRIPT_NAME is not provided. Note that this parameter is **case-insensitive**, for convenience.
 
     * `url`: The URL to listen to on the browser. Set it to an empty string (`''`) if you don't want live reload on the browser. eg. `localhost:8000`.
+
+      > Note: For chrome and edge, you must prepend the localhost URL with `http://`. Not tested on safari, but if you see `data;` in the address bar, this URL change should fix it.
 
     * `command`: A single command or a list of commands to execute on the terminal. eg.
       ```
