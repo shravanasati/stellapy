@@ -5,7 +5,7 @@ from threading import Lock, Thread
 from time import sleep
 from typing import Any, Callable, Generic, TypeVar
 
-import helium
+from selenium import webdriver
 from watchdog.observers import Observer
 
 from stellapy.configuration import Configuration
@@ -105,7 +105,9 @@ class Reloader:
         # watchdog observer
         self.observer = Observer()
         self.observer.schedule(
-            PatternMatchingEventHandler(self.config.include_only, self._restart),
+            PatternMatchingEventHandler(
+                self.config.include_only, self.config.poll_interval, self._restart
+            ),
             ".",
             recursive=True,
         )
@@ -133,56 +135,47 @@ class Reloader:
             sleep(self.trigger_execution_interval)
 
     def start_browser(self):
-        browser = self.config.browser
-        if browser == "chrome":
-            try:
-                helium.start_chrome(self.url)
-            except Exception as e:
-                if "Message: unknown error: cannot find Chrome binary" in str(e):
-                    log(
-                        "error",
-                        "chrome binary not found. either install chrome browser or configure stella browser to firefox.",
-                    )
-                    self.stop()
+        # selenium driver
+        if self.config.browser not in ("firefox", "chrome", "safari", "edge"):
+            # this should never happen because of configuration validation
+            raise Exception(f"invalid browser={self.config.browser}")
 
-                elif "Reached error page" in str(e):
-                    log("error", "app crashed, waiting for file changes to restart...")
+        match self.config.browser.lower():
+            case "firefox":
+                self.driver = webdriver.Firefox()
+            case "chrome":
+                self.driver = webdriver.Chrome()
+            case "safari":
+                self.driver = webdriver.Safari()
+            case "edge":
+                self.driver = webdriver.Edge()
+            case _:
+                raise Exception(f"unknown browser={self.config.browser}")
 
-                else:
-                    log("error", f"an unknown error occurred: \n{e}")
-                    self.stop()
+        try:
+            # todo handle selenium manager exception
+            # todo edit schema.json
+            self.driver.get(self.url)
+        except Exception as e:
+            if "Message: unknown error: cannot find Chrome binary" in str(e):
+                log(
+                    "error",
+                    "chrome binary not found. either install chrome browser or configure stella browser to firefox.",
+                )
+                self.stop()
 
-        elif browser == "firefox":
-            try:
-                helium.start_firefox(self.url)
-            except Exception as e:
-                if "Message: unknown error: cannot find Firefox binary" in str(e):
-                    log(
-                        "error",
-                        "firefox binary not found. either install chrome browser or configure stella to use firefox.",
-                    )
-                    self.stop()
+            elif "Reached error page" in str(e):
+                log("error", "app crashed, waiting for file changes to restart...")
 
-                elif "Message: Reached error page" in str(e):
-                    log("error", "app crashed, waiting for file changes to restart...")
+            else:
+                log("error", f"an unknown error occurred: \n{e}")
+                self.stop()
 
-                else:
-                    log("error", f"an unknown error occurred: \n{e}")
-                    self.stop()
-
-        else:
-            log(
-                "error",
-                f"invalid browser specified: {browser}. stella supports only chrome and firefox. execute `stella config --browser chrome|firefox` for configuring the browser.",
-            )
-            self.stop()
-
-    @staticmethod
-    def _browser_reloader(_: Trigger[timedelta]):
+    def _browser_reloader(self, _: Trigger[timedelta]):
         """
         A helper function used in browser reload triggers.
         """
-        helium.refresh()
+        self.driver.refresh()
 
     @staticmethod
     def _displayable_seconds_from_timedelta(t: timedelta):
@@ -265,7 +258,7 @@ class Reloader:
                 if self.RELOAD_BROWSER:
                     try:
                         log("info", "trying to reload browser window")
-                        helium.refresh()
+                        self.driver.refresh()
                     except Exception:
                         log("error", "unable to refresh browser window")
                 else:
@@ -296,7 +289,7 @@ class Reloader:
         try:
             self.executor.close()
             if self.RELOAD_BROWSER:
-                helium.kill_browser()
+                self.driver.quit()
         except Exception as e:
             log(
                 "error",
@@ -305,8 +298,9 @@ class Reloader:
             exception(e)
         finally:
             self._finished = True
-            self.observer.stop()
-            self.observer.join()
+            if self.observer.is_alive():
+                self.observer.stop()
+                self.observer.join()
 
     def start(self) -> None:
         """

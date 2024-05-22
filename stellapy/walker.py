@@ -3,7 +3,12 @@ from pathlib import Path
 from typing import Callable, Iterable
 
 import gitignorefile
-from watchdog.events import FileSystemEvent, FileSystemEventHandler, EVENT_TYPE_CLOSED, EVENT_TYPE_OPENED
+from watchdog.events import (
+    EVENT_TYPE_CLOSED,
+    EVENT_TYPE_OPENED,
+    FileSystemEvent,
+    FileSystemEventHandler,
+)
 
 
 def get_ignore_include_patterns(include_only: Iterable[str] | None):
@@ -28,15 +33,26 @@ class PatternMatchingEventHandler(FileSystemEventHandler):
     Subclass of `watchdog.FileSystemEventHandler` which implements gitignore-style
     pattern matching.
     """
-    def __init__(self, include_only: Iterable[str] | None, callback: Callable[[], None]) -> None:
+
+    def __init__(
+        self,
+        include_only: Iterable[str] | None,
+        poll_interval: float,
+        callback: Callable[[], None],
+    ) -> None:
         super().__init__()
-        self.ignore_match, self.include_match = get_ignore_include_patterns(include_only)
+        self.ignore_match, self.include_match = get_ignore_include_patterns(
+            include_only
+        )
+        self.poll_interval = poll_interval
         self.callback_fn = callback
         self.last_event_time = datetime.now()
 
     def on_any_event(self, event: FileSystemEvent) -> None:
         # only respond to events after a certain threshold
-        if datetime.now() - self.last_event_time > timedelta(milliseconds=500):
+        if datetime.now() - self.last_event_time > timedelta(
+            milliseconds=self.poll_interval
+        ):
             super().on_any_event(event)
             self.callback_fn()
             self.last_event_time = datetime.now()
@@ -46,7 +62,7 @@ class PatternMatchingEventHandler(FileSystemEventHandler):
             self.ignore_match(event.src_path),
             ".git" in event.src_path,
             event.event_type in (EVENT_TYPE_OPENED, EVENT_TYPE_CLOSED),
-            not self.include_match(event.src_path)
+            not self.include_match(event.src_path),
         }
         if any(no_dispatch_conditions):
             return

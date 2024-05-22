@@ -44,12 +44,12 @@ stella = "stellapy.stella:main"
 [tool.poetry.dependencies]
 python = "^3.10"
 click = "^8.1.7"
-helium = "^4.0.0"
 rich = "^13.7.0"
 ruamel-yaml = "^0.18.5"
 gitignorefile = "^1.1.2"
 jsonschema = "^4.20.0"
 watchdog = "^4.0.0"
+selenium = "^4.21.0"
 
 
 [build-system]

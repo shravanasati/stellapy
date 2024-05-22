@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from dataclasses import asdict, dataclass
 from io import StringIO
@@ -56,7 +57,6 @@ class Configuration:
     include_only: list[str]
     poll_interval: float  # milliseconds
     browser_wait_interval: float
-    follow_symlinks: bool
     scripts: list[Script]
 
     @classmethod
@@ -67,7 +67,6 @@ class Configuration:
             scripts=[Script("default", "", "echo 'hello'", True)],
             poll_interval=500,
             browser_wait_interval=1000,
-            follow_symlinks=False,
         )
 
     def to_yaml(self):
@@ -178,7 +177,7 @@ def load_configuration_handle_errors(
     except ValidationError as ve:
         log(
             "error",
-            f"{IMPROPER_CONFIG_HELP_TEXT}\n\tvalidation error: {ve}",
+            f"{IMPROPER_CONFIG_HELP_TEXT}\nvalidation error: {ve}",
         )
         exit(1)
     except Exception as e:
