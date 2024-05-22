@@ -1,5 +1,4 @@
 import json
-import logging
 import os
 from dataclasses import asdict, dataclass
 from io import StringIO
@@ -52,7 +51,6 @@ class Configuration:
     Represents the stella configuration.
     """
 
-    # todo set custom browser drivers for extending browser support
     browser: str
     include_only: list[str]
     poll_interval: float  # milliseconds

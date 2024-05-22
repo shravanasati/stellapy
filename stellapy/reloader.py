@@ -10,7 +10,7 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
 from watchdog.observers import Observer
 
-from stellapy.configuration import Configuration
+from stellapy.configuration import Configuration, load_configuration_handle_errors
 from stellapy.executor import Executor
 from stellapy.logger import log
 from stellapy.walker import PatternMatchingEventHandler
@@ -283,23 +283,18 @@ class Reloader:
                         "no browser URL is configured, can't refresh browser window",
                     )
 
-            # ! too much black magic required to have configuration reloaded
-            # ! it's because stop_server calls os._exit and that stops the entire progam because there
-            # ! is no way to gracefully stop the input thread
-            # ? maybe use timeout input or process
-            # elif message == "rc":
-            #     log(
-            #         "stella",
-            #         "attempting to reload configuration, stopping existing commands and browser windows",
-            #     )
-            #     self.stop_server()
-            #     cfg_file, new_config = load_configuration_handle_errors(
-            #         self.config_file
-            #     )
-            #     self.__init__(new_config, self.script.name, cfg_file)  # type: ignore
-            #     # ignore above because if self.script was None program would've already quit in __init__
-            #     self.executor.start()
-            #     self.restart()
+            elif message == "rc":
+                log(
+                    "stella",
+                    "attempting to reload configuration, stopping existing commands and browser windows",
+                )
+                self.stop()
+                cfg_file, new_config = load_configuration_handle_errors(
+                    self.config_file
+                )
+                self.__init__(new_config, self.script.name, cfg_file)  # type: ignore
+                # ignore above because if self.script was None program would've already quit in __init__
+                self.start()
 
     def stop(self):
         try:
