@@ -13,7 +13,7 @@ from watchdog.observers import Observer
 from stellapy.configuration import Configuration, load_configuration_handle_errors
 from stellapy.executor import Executor
 from stellapy.logger import log
-from stellapy.walker import PatternMatchingEventHandler
+from stellapy.walker import GitignoreMatchingEventHandler
 
 T = TypeVar("T")
 ActionFunc = Callable[["Trigger"], None]
@@ -73,7 +73,7 @@ class TriggerQueue:
 
     def cancel_all(self):
         """
-        Cancel all the triggers.
+        Cancel all the scheduled triggers.
         """
         with self.__lock:
             self.triggers.clear()
@@ -107,7 +107,7 @@ class Reloader:
         # watchdog observer
         self.observer = Observer()
         self.observer.schedule(
-            PatternMatchingEventHandler(
+            GitignoreMatchingEventHandler(
                 self.config.include_only, self.config.poll_interval, self._restart
             ),
             ".",
@@ -159,15 +159,27 @@ class Reloader:
             self.driver.get(self.url)
 
         except Exception as e:
-            if "Message: unknown error: cannot find Chrome binary" in str(e):
+            se = str(e)
+            if "Message: unknown error: cannot find Chrome binary" in se:
                 log(
                     "error",
                     "chrome binary not found. either install chrome browser or configure stella browser to firefox.",
                 )
                 self.stop()
 
-            elif "Reached error page" in str(e):
-                log("error", "app crashed, waiting for file changes to restart...")
+            elif "net::ERR_" in se or "Reached error page" in se:
+                log(
+                    "error",
+                    f"browser startup failed, retrying in {self._displayable_seconds_from_timedelta(self.browser_wait_delta)} seconds",
+                )
+                self.trigger_queue.add(
+                    Trigger(
+                        action=self._browser_reloader,
+                        when=datetime.now() + self.browser_wait_delta,
+                        error_handler=self._browser_reload_error_handler,
+                        value=self.browser_wait_delta,
+                    )
+                )
 
             else:
                 log("error", f"an unknown error occurred: \n{e}")
@@ -236,12 +248,6 @@ class Reloader:
                 ),
             )
 
-    # def restart(self) -> None:
-    #     if self.RELOAD_BROWSER:
-    #         self.start_browser()
-    #     while not self._finished:
-    #         self._restart()
-
     def manual_input(self) -> None:
         """
         Manual restart and exit.
@@ -284,6 +290,7 @@ class Reloader:
                     )
 
             elif message == "rc":
+                # todo document rc
                 log(
                     "stella",
                     "attempting to reload configuration, stopping existing commands and browser windows",
@@ -298,9 +305,12 @@ class Reloader:
 
     def stop(self):
         try:
+            self.trigger_queue.cancel_all()
             self.executor.close()
             if self.RELOAD_BROWSER:
-                self.driver.quit()
+                if getattr(self, "driver", "!nope!") != "!nope!":
+                    # condition to check if driver was initialized
+                    self.driver.quit()
         except Exception as e:
             log(
                 "error",

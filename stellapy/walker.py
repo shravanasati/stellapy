@@ -28,7 +28,7 @@ def get_ignore_include_patterns(include_only: Iterable[str] | None):
     return ignore_match, include_match
 
 
-class PatternMatchingEventHandler(FileSystemEventHandler):
+class GitignoreMatchingEventHandler(FileSystemEventHandler):
     """
     Subclass of `watchdog.FileSystemEventHandler` which implements gitignore-style
     pattern matching.
