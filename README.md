@@ -29,16 +29,17 @@ You can use it like any other live reload tool too - with builtin `.gitignore` d
 Using [pipx](https://pypa.github.io/pipx/) (recommended):
 ```
 pipx install stellapy
+# pipx upgrade stellapy to upgrade
 ```
 
 On Windows:
 ```
-pip install stellapy
+pip install -U stellapy
 ```
 
 On Linux/MacOS:
 ```
-pip3 install stellapy
+pip3 install -U stellapy
 ```
 
 
