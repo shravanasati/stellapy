@@ -107,7 +107,7 @@ Let's quickly go over the config options:
 
     * `url`: The URL to listen to on the browser. Set it to an empty string (`''`) if you don't want live reload on the browser. eg. `localhost:8000`.
 
-      > Note: For chrome and edge, you must prepend the localhost URL with `http://`. Not tested on safari, but if you see `data;` in the address bar, this URL change should fix it.
+      > Note: For chrome and edge, you URLs starting with `localhost` won't work, prepend the `url` with a scheme like `http://` or `file://`. Not tested on safari, but if you see `data;` in the address bar, this URL change should fix it.
 
     * `command`: A single command or a list of commands to execute on the terminal. eg.
       ```
@@ -127,16 +127,13 @@ Let's quickly go over the config options:
 
 ### Ignore
 
-Polling a filesystem for changes can be lengthy in case of big projects.
-Even worse when dependencies are vendored within the project, like python virtual environments or include directories in c/c++.
-
-Therefore, you can create a `stella.ignore` file in the project with gitignore-style patterns to exclude certain directories and files to consider.
+You can create a `stella.ignore` file in the project with gitignore-style patterns to exclude certain directories and files to watch.
 
 Otherwise, `.gitignore` also just works, and is the recommended way.
 
 However, `stella.ignore` will be the first one that will be searched for. If it's not found, stella will resort to `.gitignore`.
 
-Ignore patterns are cached once stella is started, similar to the stella configuration. If you change either of them, in order to see the desired changes, you need stop stella and run it again.
+Ignore patterns are cached once stella is started, similar to the stella configuration. If you change either of them, in order to see the desired changes, you need to either type `rc` and press enter or stop stella and run it again.
 
 
 ### run
@@ -155,9 +152,13 @@ Alternatively, an environment variable named `STELLA_CONFIG` can be set for the 
 If not provided, stella will attempt to find `stella.yml` in the current directory or its parent folders until its found.
 
 
-While stella is running, you can input `rs` to restart the server and refresh the browser page manually, and `rb` only to refresh the browser page.
+While stella is running, you can input `rs` to restart the server and refresh the browser page manually, and `rb` to refresh the browser page.
+
+Since *v0.3.0*, you can also reload the stella configuration by typing `rc` and pressing enter. This will close the existing browser window and the running process, and restart the same script with the stella configuration.
 
 To stop stella, input `ex`. It will close the browser as well as kill the running process gracefully (it sends `SIGTERM` on Unix based systems and `CTRL_BREAK_EVENT` on Windows).
+
+If an error is encountered on refreshing the browser page (an event which can happen often, primarily due to server taking a long time to restart or the command failed to execute successfully), stella will retry with the exponential backoff strategy (2^n) until the browser refresh is successfull or a new change is detected.
 
 <br>
 

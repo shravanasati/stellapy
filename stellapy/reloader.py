@@ -155,7 +155,6 @@ class Reloader:
                 raise Exception(f"unknown browser={self.config.browser}")
 
         try:
-            # todo handle selenium manager exception
             self.driver.get(self.url)
 
         except Exception as e:
@@ -290,7 +289,6 @@ class Reloader:
                     )
 
             elif message == "rc":
-                # todo document rc
                 log(
                     "stella",
                     "attempting to reload configuration, stopping existing commands and browser windows",
