@@ -23,8 +23,8 @@ A clear and concise description of what you expected to happen.
 
 **Desktop (please complete the following information):**
  - OS: [e.g. Windows, macOS]
- - Version of stellapy you are using [e.g. v0.1.0] (check it using stella -v)
- - Stella configuration (located in `~/stella_config.json`)
+ - Version of stellapy you are using [e.g. v0.1.0] (check it using `stella -v`)
+ - Stella configuration (located in `stella.yml`)
 
 **Additional context**
 Add any other context about the problem here.

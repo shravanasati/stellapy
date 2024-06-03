@@ -12,6 +12,7 @@ from watchdog.events import (
 
 
 def get_ignore_include_patterns(include_only: Iterable[str] | None):
+    # todo use stella.ignore and .gitignore together
     ignore_filepath = find_ignore_file()
     ignore_match = (
         gitignorefile.parse(ignore_filepath) if ignore_filepath else lambda _: False

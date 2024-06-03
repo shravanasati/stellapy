@@ -78,7 +78,6 @@ browser: firefox
 include_only: []
 poll_interval: 500
 browser_wait_interval: 1000
-follow_symlinks: false
 scripts:
 - name: default
   url: ''
@@ -108,7 +107,7 @@ Let's quickly go over the config options:
 
     * `url`: The URL to listen to on the browser. Set it to an empty string (`''`) if you don't want live reload on the browser. eg. `localhost:8000`.
 
-      > Note: For chrome and edge, you URLs starting with `localhost` won't work, prepend the `url` with a scheme like `http://` or `file://`. Not tested on safari, but if you see `data;` in the address bar, this URL change should fix it.
+      > Note: For chrome and edge, URLs starting with `localhost` won't work, prepend the `url` with a scheme like `http://` or `file://`. Not tested on safari, but if you see `data;` in the address bar, this URL change should fix it.
 
     * `command`: A single command or a list of commands to execute on the terminal. eg.
       ```
@@ -121,7 +120,7 @@ Let's quickly go over the config options:
         - go build
         - ./main.exe
       ```
-      If a list of commands are provided, the `shell` will be considered `true` even if it's `false`.
+      If a list of commands are provided, the `shell` will be considered `true` even if it's `false`, and these commands will be executed **sequentially** one after the other.
 
     * `shell`: **Boolean** value which indicates whether to execute commands inside a shell context (like bash, powershell, zsh...) or as an independent process. This is useful if you want to execute shell scripts directly without invoking the shell interpreter. On Windows, powershell is used as shell (instead of cmd). On Linux and MacOS, the shell used is determined by `SHELL` environment variable. If it's not present, `/bin/sh` will be used.
 
@@ -168,7 +167,7 @@ If an error is encountered on refreshing the browser page (an event which can ha
 
 License © 2021-Present Shravan Asati
 
-This repository is licensed under the MIT license. See [LICENSE](LICENSE) for details.
+This repository is licensed under the MIT license. See [LICENSE](LICENSE.txt) for details.
 
 <br>
 
