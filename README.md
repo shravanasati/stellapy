@@ -1,12 +1,14 @@
 # stella
 
+![stella_logo](assets/logo.png)
+
 ![stella_demo](assets/stella.gif)
 
 [![Downloads](https://pepy.tech/badge/stellapy)](https://pepy.tech/project/stellapy)
 
 stella is a command line utility made for streamlining web development experience. 
 It is able to reload server as well as the browser page on every file change.
-You can use it like any other live reload tool too - with builtin `.gitignore` detection and obedience, along with several other features like multiple command execution, and the npm-scripts like interface.
+You can use it like any other file watcher too - with builtin `.gitignore` detection and obedience, along with several other features like multiple command execution, and the npm-scripts like interface.
 
 <br>
 
@@ -29,7 +31,11 @@ You can use it like any other live reload tool too - with builtin `.gitignore` d
 Using [pipx](https://pypa.github.io/pipx/) (recommended):
 ```
 pipx install stellapy
-# pipx upgrade stellapy to upgrade
+```
+
+To upgrade:
+```
+pipx upgrade stellapy 
 ```
 
 On Windows:
