@@ -3,10 +3,9 @@ import os
 from dataclasses import asdict, dataclass
 from io import StringIO
 from logging import exception
-from pathlib import Path
 from typing import Any
 
-import pkg_resources
+import importlib.resources
 from jsonschema import Draft6Validator, ValidationError, validate
 from ruamel.yaml import YAML
 
@@ -17,12 +16,10 @@ YAML_SCHEMA_TEXT = "# yaml-language-server: $schema=https://raw.githubuserconten
 
 
 def get_json_schema() -> dict[str, Any]:
-    jsonschema_path = (
-        Path(pkg_resources.resource_filename("stellapy", "schema.json")).parent.parent
-        / "schema.json"
-    )
-    with open(jsonschema_path) as f:
-        return json.load(f)
+    ref = importlib.resources.files("stellapy").parent / "schema.json"
+    with importlib.resources.as_file(ref) as jsonschema_path:
+        with open(str(jsonschema_path)) as f:
+            return json.load(f)
 
 
 class ConfigFileNotFound(Exception):

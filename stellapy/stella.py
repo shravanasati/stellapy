@@ -8,7 +8,7 @@ from stellapy.logger import log
 from stellapy.reloader import Reloader
 
 NAME = "stella"
-VERSION = "0.3.0"
+VERSION = "0.3.1"
 
 # , help = "The url to listen to on the browser. Example: localhost:5000", prompt = "Enter the URL to listen to on the browser"
 # , help = "The command to execute on a file change. Example: python3 app.py", prompt = "Enter the command to execute on a file change"
