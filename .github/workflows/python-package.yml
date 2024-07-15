@@ -39,4 +39,8 @@ jobs:
 
     - name: Run a command
       run: |
-        timeout 5 stella run ls | true
+        # run the command for 5s, if the status code is 124 (timeout)
+        # then it's fine since stella never exits itself if everything
+        # is right. however, exit with non-zero if its not 124 (which means
+        # something bad happened)
+        timeout 5 stella run ls || ( [[ $? -eq 124 ]] ;  )
